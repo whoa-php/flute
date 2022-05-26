@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ use Whoa\Contracts\Application\ContainerConfiguratorInterface;
 use Whoa\Contracts\Container\ContainerInterface as WhoaContainerInterface;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Contracts\Exceptions\ThrowableHandlerInterface;
+use Whoa\Contracts\Settings\Packages\FluteSettingsInterface as FCI;
 use Whoa\Contracts\Settings\SettingsProviderInterface;
 use Whoa\Doctrine\Types\DateTimeType as WhoaDateTimeType;
 use Whoa\Doctrine\Types\DateType as WhoaDateType;
@@ -52,23 +53,18 @@ use Psr\Log\LoggerInterface;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class FluteContainerConfigurator implements ContainerConfiguratorInterface
 {
     /** @var callable */
-    const CONFIGURATOR = [self::class, self::CONTAINER_METHOD_NAME];
+    public const CONFIGURATOR = [self::class, self::CONTAINER_METHOD_NAME];
 
     /** @var callable */
-    const CONFIGURE_EXCEPTION_HANDLER = [self::class, 'configureExceptionHandler'];
+    public const CONFIGURE_EXCEPTION_HANDLER = [self::class, 'configureExceptionHandler'];
 
     /**
      * @inheritdoc
-     *
      * @throws DBALException
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function configureContainer(WhoaContainerInterface $container): void
     {
@@ -77,12 +73,12 @@ class FluteContainerConfigurator implements ContainerConfiguratorInterface
         $container[FactoryInterface::class] = $factory;
 
         $container[JsonSchemasInterface::class] = function (PsrContainerInterface $container) use ($factory) {
-            $settings     = $container->get(SettingsProviderInterface::class)->get(FluteSettings::class);
+            $settings = $container->get(SettingsProviderInterface::class)->get(FluteSettings::class);
             $modelSchemas = $container->get(ModelSchemaInfoInterface::class);
 
             return $factory->createJsonSchemas(
-                $settings[FluteSettings::KEY_MODEL_TO_SCHEMA_MAP],
-                $settings[FluteSettings::KEY_TYPE_TO_SCHEMA_MAP],
+                $settings[FCI::KEY_MODEL_TO_SCHEMA_MAP],
+                $settings[FCI::KEY_TYPE_TO_SCHEMA_MAP],
                 $modelSchemas
             );
         };
@@ -94,14 +90,14 @@ class FluteContainerConfigurator implements ContainerConfiguratorInterface
         $container[EncoderInterface::class] = function (PsrContainerInterface $container) use ($factory) {
             /** @var JsonSchemasInterface $jsonSchemas */
             $jsonSchemas = $container->get(JsonSchemasInterface::class);
-            $settings    = $container->get(SettingsProviderInterface::class)->get(FluteSettings::class);
-            $encoder     = $factory
+            $settings = $container->get(SettingsProviderInterface::class)->get(FluteSettings::class);
+            $encoder = $factory
                 ->createEncoder($jsonSchemas)
-                ->withEncodeOptions($settings[FluteSettings::KEY_JSON_ENCODE_OPTIONS])
-                ->withEncodeDepth($settings[FluteSettings::KEY_JSON_ENCODE_DEPTH])
-                ->withUrlPrefix($settings[FluteSettings::KEY_URI_PREFIX]);
-            isset($settings[FluteSettings::KEY_META]) ? $encoder->withMeta($settings[FluteSettings::KEY_META]) : null;
-            ($settings[FluteSettings::KEY_IS_SHOW_VERSION] ?? false) ?
+                ->withEncodeOptions($settings[FCI::KEY_JSON_ENCODE_OPTIONS])
+                ->withEncodeDepth($settings[FCI::KEY_JSON_ENCODE_DEPTH])
+                ->withUrlPrefix($settings[FCI::KEY_URI_PREFIX]);
+            isset($settings[FCI::KEY_META]) ? $encoder->withMeta($settings[FCI::KEY_META]) : null;
+            ($settings[FCI::KEY_IS_SHOW_VERSION] ?? false) ?
                 $encoder->withJsonApiVersion(FluteSettings::DEFAULT_JSON_API_VERSION) : null;
 
             return $encoder;
@@ -114,19 +110,18 @@ class FluteContainerConfigurator implements ContainerConfiguratorInterface
         };
 
         $container[JsonApiParserFactoryInterface::class] = function (PsrContainerInterface $container) {
-            $factory = new JsonApiParserFactory($container);
-
-            return $factory;
+            return new JsonApiParserFactory($container);
         };
 
         $container[FormValidatorFactoryInterface::class] = function (PsrContainerInterface $container) {
-            $factory = new FormValidatorFactory($container);
-
-            return $factory;
+            return new FormValidatorFactory($container);
         };
 
         // register date/date time types
-        Type::hasType(WhoaDateTimeType::NAME) === true ?: Type::addType(WhoaDateTimeType::NAME, WhoaDateTimeType::class);
+        Type::hasType(WhoaDateTimeType::NAME) === true ?: Type::addType(
+            WhoaDateTimeType::NAME,
+            WhoaDateTimeType::class
+        );
         Type::hasType(WhoaDateType::NAME) === true ?: Type::addType(WhoaDateType::NAME, WhoaDateType::class);
         Type::hasType(WhoaTimeType::NAME) === true ?: Type::addType(WhoaTimeType::NAME, WhoaTimeType::class);
 
@@ -136,24 +131,23 @@ class FluteContainerConfigurator implements ContainerConfiguratorInterface
 
     /**
      * @param WhoaContainerInterface $container
-     *
      * @return void
      */
     public static function configureExceptionHandler(WhoaContainerInterface $container)
     {
         $container[ThrowableHandlerInterface::class] = function (PsrContainerInterface $container) {
             /** @var CacheSettingsProviderInterface $provider */
-            $provider      = $container->get(CacheSettingsProviderInterface::class);
-            $appConfig     = $provider->getApplicationConfiguration();
+            $provider = $container->get(CacheSettingsProviderInterface::class);
+            $appConfig = $provider->getApplicationConfiguration();
             $fluteSettings = $provider->get(FluteSettings::class);
 
             $isLogEnabled = $appConfig[A::KEY_IS_LOG_ENABLED];
-            $isDebug      = $appConfig[A::KEY_IS_DEBUG];
+            $isDebug = $appConfig[A::KEY_IS_DEBUG];
 
-            $ignoredErrorClasses = $fluteSettings[FluteSettings::KEY_DO_NOT_LOG_EXCEPTIONS_LIST__AS_KEYS];
-            $codeForUnexpected   = $fluteSettings[FluteSettings::KEY_HTTP_CODE_FOR_UNEXPECTED_THROWABLE];
-            $throwableConverter  =
-                $fluteSettings[FluteSettings::KEY_THROWABLE_TO_JSON_API_EXCEPTION_CONVERTER] ?? null;
+            $ignoredErrorClasses = $fluteSettings[FCI::KEY_DO_NOT_LOG_EXCEPTIONS_LIST__AS_KEYS];
+            $codeForUnexpected = $fluteSettings[FCI::KEY_HTTP_CODE_FOR_UNEXPECTED_THROWABLE];
+            $throwableConverter =
+                $fluteSettings[FCI::KEY_THROWABLE_TO_JSON_API_EXCEPTION_CONVERTER] ?? null;
 
             /** @var EncoderInterface $encoder */
             $encoder = $container->get(EncoderInterface::class);

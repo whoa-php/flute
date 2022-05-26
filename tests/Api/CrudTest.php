@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,17 @@ declare (strict_types=1);
 namespace Whoa\Tests\Flute\Api;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception as DBALDriverException;
 use Doctrine\DBAL\Exception as DBALException;
+use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Types\Type;
 use Exception;
 use Whoa\Container\Container;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
+use Whoa\Doctrine\Types\DateTimeType;
+use Whoa\Doctrine\Types\DateType;
+use Whoa\Doctrine\Types\UuidType;
 use Whoa\Flute\Adapters\ModelQueryBuilder;
 use Whoa\Flute\Api\BasicRelationshipPaginationStrategy;
 use Whoa\Flute\Api\Crud;
@@ -36,6 +41,7 @@ use Whoa\Flute\Contracts\Api\RelationshipPaginationStrategyInterface;
 use Whoa\Flute\Contracts\FactoryInterface;
 use Whoa\Flute\Contracts\Http\Query\FilterParameterInterface;
 use Whoa\Flute\Contracts\Models\PaginatedDataInterface;
+use Whoa\Flute\Exceptions\InvalidArgumentException;
 use Whoa\Flute\Factory;
 use Whoa\Tests\Flute\Data\Api\CommentsApi;
 use Whoa\Tests\Flute\Data\Api\PostsApi;
@@ -46,6 +52,7 @@ use Whoa\Tests\Flute\Data\Models\Board;
 use Whoa\Tests\Flute\Data\Models\Comment;
 use Whoa\Tests\Flute\Data\Models\CommentEmotion;
 use Whoa\Tests\Flute\Data\Models\Emotion;
+use Whoa\Tests\Flute\Data\Models\Model;
 use Whoa\Tests\Flute\Data\Models\Post;
 use Whoa\Tests\Flute\Data\Models\StringPKModel;
 use Whoa\Tests\Flute\Data\Models\User;
@@ -60,15 +67,16 @@ use PDO;
  */
 class CrudTest extends TestCase
 {
-    const DEFAULT_PAGE = 3;
+    public const DEFAULT_PAGE = 3;
 
     /**
      * @var Connection
      */
-    private $connection;
+    private Connection $connection;
 
     /**
      * @inheritDoc
+     * @throws DBALException
      */
     protected function setUp(): void
     {
@@ -76,31 +84,29 @@ class CrudTest extends TestCase
 
         // If test is run withing the whole test suite then those lines not needed, however
         // if only tests from this file are run then the lines are required.
-        Type::hasType(SystemDateTimeType::NAME) === true ?: Type::addType(SystemDateTimeType::NAME, SystemDateTimeType::class);
-        Type::hasType(SystemDateType::NAME) === true ?: Type::addType(SystemDateType::NAME, SystemDateType::class);
-
-        Type::hasType(SystemUuidType::NAME) === true ?: Type::addType(SystemUuidType::NAME, SystemUuidType::class);
+        Type::hasType(DateTimeType::NAME) === true ?: Type::addType(DateTimeType::NAME, SystemDateTimeType::class);
+        Type::hasType(DateType::NAME) === true ?: Type::addType(DateType::NAME, SystemDateType::class);
+        Type::hasType(UuidType::NAME) === true ?: Type::addType(UuidType::NAME, SystemUuidType::class);
     }
 
     /**
      * Test create read and delete newly created resource.
-     *
      * @throws Exception
      * @throws DBALException
      */
     public function testCreateReadAndDeletePost(): void
     {
-        $userId     = 1;
-        $boardId    = 2;
-        $text       = 'Some text';
-        $title      = 'Some title';
+        $userId = 1;
+        $boardId = 2;
+        $text = 'Some text';
+        $title = 'Some title';
         $attributes = [
-            Post::FIELD_TITLE    => $title,
-            Post::FIELD_TEXT     => $text,
+            Post::FIELD_TITLE => $title,
+            Post::FIELD_TEXT => $text,
             Post::FIELD_ID_BOARD => $boardId,
-            Post::FIELD_ID_USER  => $userId,
+            Post::FIELD_ID_USER => $userId,
         ];
-        $toMany     = [];
+        $toMany = [];
 
         $crud = $this->createCrud(PostsApi::class);
 
@@ -127,14 +133,13 @@ class CrudTest extends TestCase
 
     /**
      * Test create read and delete newly created resource with string primary key.
-     *
      * @throws Exception
      * @throws DBALException
      */
     public function testCreateReadAndDeleteStringPKModel(): void
     {
-        $pk         = 'new_pk_value';
-        $name       = 'Some title';
+        $pk = 'new_pk_value';
+        $name = 'Some title';
         $attributes = [
             StringPKModel::FIELD_NAME => $name,
         ];
@@ -163,23 +168,22 @@ class CrudTest extends TestCase
 
     /**
      * Test create resource with to-many (belongs-to-many relationships).
-     *
-     * @throws Exception
      * @throws DBALException
+     * @throws DBALDriverException
      */
     public function testCreateCommentsWithEmotions(): void
     {
-        $userId     = 1;
-        $postId     = 2;
-        $text       = 'Some text';
-        $uuid       = '64c7660d-01f6-406a-8d13-e137ce268fde';
+        $userId = 1;
+        $postId = 2;
+        $text = 'Some text';
+        $uuid = '64c7660d-01f6-406a-8d13-e137ce268fde';
         $attributes = [
-            Comment::FIELD_UUID    => $uuid,
-            Comment::FIELD_TEXT    => $text,
+            Model::FIELD_UUID => $uuid,
+            Comment::FIELD_TEXT => $text,
             Comment::FIELD_ID_POST => $postId,
             Comment::FIELD_ID_USER => $userId,
         ];
-        $toMany     = [
+        $toMany = [
             Comment::REL_EMOTIONS => ['3', '4'],
         ];
 
@@ -192,7 +196,7 @@ class CrudTest extends TestCase
 
         $this->assertEquals($userId, $model->{Comment::FIELD_ID_USER});
         $this->assertEquals($postId, $model->{Comment::FIELD_ID_POST});
-        $this->assertEquals($uuid, $model->{Comment::FIELD_UUID});
+        $this->assertEquals($uuid, $model->{Model::FIELD_UUID});
         $this->assertEquals($text, $model->{Comment::FIELD_TEXT});
         $this->assertEquals($index, $model->{Comment::FIELD_ID});
 
@@ -239,22 +243,21 @@ class CrudTest extends TestCase
 
     /**
      * Test update resource with to-many (belongs-to-many relationships).
-     *
      * @throws Exception
      * @throws DBALException
      */
     public function testUpdateCommentsWithEmotions(): void
     {
-        $commentId  = '1';
-        $userId     = '1';
-        $postId     = '3';
-        $text       = 'Some text';
+        $commentId = '1';
+        $userId = '1';
+        $postId = '3';
+        $text = 'Some text';
         $attributes = [
-            Comment::FIELD_TEXT    => $text,
+            Comment::FIELD_TEXT => $text,
             Comment::FIELD_ID_POST => $postId,
             Comment::FIELD_ID_USER => $userId,
         ];
-        $toMany     = [
+        $toMany = [
             Comment::REL_EMOTIONS => ['3', '4'],
         ];
 
@@ -301,7 +304,7 @@ class CrudTest extends TestCase
      */
     public function testDeleteResourceWithConstraints(): void
     {
-        $this->expectException(\Doctrine\DBAL\Exception\DriverException::class);
+        $this->expectException(DriverException::class);
 
         $crud = $this->createCrud(PostsApi::class);
         $crud->remove('1');
@@ -309,7 +312,6 @@ class CrudTest extends TestCase
 
     /**
      * Check 'read' with included paths.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -317,7 +319,7 @@ class CrudTest extends TestCase
     {
         $crud = $this->createCrud(PostsApi::class);
 
-        $index        = '18';
+        $index = '18';
         $includePaths = [
             [Post::REL_BOARD],
             [Post::REL_COMMENTS],
@@ -334,10 +336,10 @@ class CrudTest extends TestCase
 
         /** @var PaginatedDataInterface $commentsRel */
         $commentsRel = $model->{Post::REL_COMMENTS};
-        $comments    = $commentsRel->getData();
-        $hasMore     = $commentsRel->hasMoreItems();
-        $offset      = $commentsRel->getOffset();
-        $limit       = $commentsRel->getLimit();
+        $comments = $commentsRel->getData();
+        $hasMore = $commentsRel->hasMoreItems();
+        $offset = $commentsRel->getOffset();
+        $limit = $commentsRel->getLimit();
         $this->assertNotEmpty($comments);
         $this->assertCount(3, $comments);
         $this->assertEquals(Comment::class, get_class($comments[0]));
@@ -360,7 +362,7 @@ class CrudTest extends TestCase
         $this->assertSame(0, $emotions->getOffset());
         $this->assertSame(self::DEFAULT_PAGE, $emotions->getLimit());
 
-        $comment  = $comments[2];
+        $comment = $comments[2];
         $emotions = $comment->{Comment::REL_EMOTIONS};
         $this->assertCount(3, $emotions->getData());
         $this->assertFalse($emotions->hasMoreItems());
@@ -370,31 +372,30 @@ class CrudTest extends TestCase
         $this->assertNotNull($post = $comment->{Comment::REL_POST});
         $this->assertNotNull($user = $post->{Post::REL_USER});
 
-        // check no data for relationships we didn't asked to download
+        // check no data for relationships we didn't ask to download
         $this->assertFalse(property_exists($user, User::REL_ROLE));
         $this->assertFalse(property_exists($user, User::REL_COMMENTS));
     }
 
     /**
      * Check 'read' with included paths.
-     *
      * @throws Exception
      * @throws DBALException
      */
     public function testReadWithDeepIncludesWhenIntermediateRelationshipIsEmpty(): void
     {
-        $crud       = $this->createCrud(PostsApi::class);
+        $crud = $this->createCrud(PostsApi::class);
         $connection = $crud->createIndexBuilder()->getConnection();
 
-        $postsTable        = Post::TABLE_NAME;
-        $postsIdPost       = Post::FIELD_ID;
-        $postsIdEditor     = Post::FIELD_ID_EDITOR;
-        $commentsTable     = Comment::TABLE_NAME;
-        $commentsIdPost    = Comment::FIELD_ID_POST;
+        $postsTable = Post::TABLE_NAME;
+        $postsIdPost = Post::FIELD_ID;
+        $postsIdEditor = Post::FIELD_ID_EDITOR;
+        $commentsTable = Comment::TABLE_NAME;
+        $commentsIdPost = Comment::FIELD_ID_POST;
         $commentsNumberSql = "SELECT COUNT(*) " .
             "FROM $commentsTable " .
             "WHERE $commentsTable.$commentsIdPost = $postsTable.$postsIdPost";
-        $noCommentsPostId  = $connection->fetchColumn(
+        $noCommentsPostId = $connection->fetchColumn(
             "SELECT $postsIdPost, ($commentsNumberSql) AS comments_number " .
             "FROM $postsTable " .
             "WHERE comments_number = 0 AND $postsIdEditor IS NULL LIMIT 1"
@@ -416,7 +417,6 @@ class CrudTest extends TestCase
 
     /**
      * Check 'read' with included paths.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -426,7 +426,7 @@ class CrudTest extends TestCase
         $crud = $this->createCrud(PostsApi::class);
         $this->assertTrue($crud instanceof Crud);
 
-        $index        = '18';
+        $index = '18';
         $includePaths = [
             [Post::REL_BOARD],
             [Post::REL_COMMENTS],
@@ -438,7 +438,7 @@ class CrudTest extends TestCase
         );
 
         $this->assertSame((string)$index, $model->{Post::FIELD_ID});
-        $this->assertTrue(is_string($model->{Post::FIELD_CREATED_AT}));
+        $this->assertTrue(is_string($model->{Model::FIELD_CREATED_AT}));
 
         $board = $model->{Post::REL_BOARD};
         $this->assertEquals(Board::class, get_class($board));
@@ -446,10 +446,10 @@ class CrudTest extends TestCase
 
         /** @var PaginatedDataInterface $commentsRel */
         $commentsRel = $model->{Post::REL_COMMENTS};
-        $comments    = $commentsRel->getData();
-        $hasMore     = $commentsRel->hasMoreItems();
-        $offset      = $commentsRel->getOffset();
-        $limit       = $commentsRel->getLimit();
+        $comments = $commentsRel->getData();
+        $hasMore = $commentsRel->hasMoreItems();
+        $offset = $commentsRel->getOffset();
+        $limit = $commentsRel->getLimit();
         $this->assertNotEmpty($comments);
         $this->assertCount(3, $comments);
         $this->assertEquals(Comment::class, get_class($comments[0]));
@@ -458,7 +458,7 @@ class CrudTest extends TestCase
         $this->assertCount(self::DEFAULT_PAGE, $comments);
         $this->assertEquals(0, $offset);
         $this->assertEquals(self::DEFAULT_PAGE, $limit);
-        $this->assertTrue(is_string($comments[0]->{Comment::FIELD_CREATED_AT}));
+        $this->assertTrue(is_string($comments[0]->{Model::FIELD_CREATED_AT}));
 
         /** @var PaginatedDataInterface $emotions */
         $emotions = $comments[0]->{Comment::REL_EMOTIONS};
@@ -466,7 +466,7 @@ class CrudTest extends TestCase
         $this->assertFalse($emotions->hasMoreItems());
         $this->assertEquals(0, $emotions->getOffset());
         $this->assertEquals(self::DEFAULT_PAGE, $emotions->getLimit());
-        $this->assertTrue(is_string($emotions->getData()[0]->{Emotion::FIELD_CREATED_AT}));
+        $this->assertTrue(is_string($emotions->getData()[0]->{Model::FIELD_CREATED_AT}));
 
         $emotions = $comments[1]->{Comment::REL_EMOTIONS};
         $this->assertCount(1, $emotions->getData());
@@ -474,7 +474,7 @@ class CrudTest extends TestCase
         $this->assertSame(0, $emotions->getOffset());
         $this->assertSame(self::DEFAULT_PAGE, $emotions->getLimit());
 
-        $comment  = $comments[2];
+        $comment = $comments[2];
         $emotions = $comment->{Comment::REL_EMOTIONS};
         $this->assertCount(3, $emotions->getData());
         $this->assertFalse($emotions->hasMoreItems());
@@ -484,14 +484,13 @@ class CrudTest extends TestCase
         $this->assertNotNull($post = $comment->{Comment::REL_POST});
         $this->assertNotNull($user = $post->{Post::REL_USER});
 
-        // check no data for relationships we didn't asked to download
+        // check no data for relationships we didn't ask to download
         $this->assertFalse(property_exists($user, User::REL_ROLE));
         $this->assertFalse(property_exists($user, User::REL_COMMENTS));
     }
 
     /**
      * Check 'read' with included paths where could be nulls.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -503,7 +502,7 @@ class CrudTest extends TestCase
 
         // check that editor relationship for selected post is `null`
         /** @noinspection SqlDialectInspection */
-        $query    = 'SELECT ' . Post::FIELD_ID_EDITOR . ' FROM ' . Post::TABLE_NAME .
+        $query = 'SELECT ' . Post::FIELD_ID_EDITOR . ' FROM ' . Post::TABLE_NAME .
             ' WHERE ' . Post::FIELD_ID . " = $index";
         $idEditor = $this->connection->query($query)->fetch(PDO::FETCH_NUM)[0];
         $this->assertNull($idEditor);
@@ -520,7 +519,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -537,12 +535,12 @@ class CrudTest extends TestCase
 
         $sortParameters = [
             Post::FIELD_ID_BOARD => false,
-            Post::FIELD_TITLE    => true,
+            Post::FIELD_TITLE => true,
         ];
-        $pagingOffset   = 1;
-        $pagingSize     = 2;
-        $filters        = [
-            Post::FIELD_TITLE   => [
+        $pagingOffset = 1;
+        $pagingSize = 2;
+        $filters = [
+            Post::FIELD_TITLE => [
                 FilterParameterInterface::OPERATION_LIKE => ['%'],
             ],
             Post::FIELD_ID_USER => [
@@ -579,7 +577,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -588,7 +585,7 @@ class CrudTest extends TestCase
         $crud = $this->createCrud(PostsApi::class);
 
         $pagingOffset = 1;
-        $pagingSize   = 2;
+        $pagingSize = 2;
 
         $crud
             ->combineWithAnd()
@@ -604,7 +601,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -613,8 +609,8 @@ class CrudTest extends TestCase
         $crud = $this->createCrud(PostsApi::class);
 
         $pagingOffset = 0;
-        $pagingSize   = 20;
-        $filters      = [
+        $pagingSize = 20;
+        $filters = [
             Post::FIELD_ID_USER => [
                 FilterParameterInterface::OPERATION_IN => [2, 4],
             ],
@@ -627,7 +623,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -650,7 +645,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -671,7 +665,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read relationship.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -679,9 +672,9 @@ class CrudTest extends TestCase
     {
         $crud = $this->createCrud(PostsApi::class);
 
-        $pagingOffset   = 1;
-        $pagingSize     = 2;
-        $postFilters    = [
+        $pagingOffset = 1;
+        $pagingSize = 2;
+        $postFilters = [
             Post::FIELD_ID => [
                 FilterParameterInterface::OPERATION_EQUALS => [1],
             ],
@@ -690,13 +683,13 @@ class CrudTest extends TestCase
             Comment::FIELD_ID_USER => [
                 FilterParameterInterface::OPERATION_LESS_THAN => [5],
             ],
-            Comment::FIELD_TEXT    => [
+            Comment::FIELD_TEXT => [
                 FilterParameterInterface::OPERATION_LIKE => ['%'],
             ],
         ];
-        $commentSorts   = [
+        $commentSorts = [
             Comment::FIELD_ID_USER => false,
-            Comment::FIELD_TEXT    => true,
+            Comment::FIELD_TEXT => true,
         ];
 
         $data = $crud
@@ -715,7 +708,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read relationship.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -727,7 +719,7 @@ class CrudTest extends TestCase
         $postFilters = [
             Post::FIELD_ID => [
                 FilterParameterInterface::OPERATION_EQUALS => [1],
-                FilterParameterInterface::OPERATION_IN     => [2],
+                FilterParameterInterface::OPERATION_IN => [2],
             ],
         ];
         // ... where comments have user ID 1 or 2 as an author and ...
@@ -756,7 +748,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read relationship.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -764,9 +755,9 @@ class CrudTest extends TestCase
     {
         $crud = $this->createCrud(PostsApi::class);
 
-        $pagingOffset   = 1;
-        $pagingSize     = 2;
-        $postFilters    = [
+        $pagingOffset = 1;
+        $pagingSize = 2;
+        $postFilters = [
             Post::FIELD_ID => [
                 FilterParameterInterface::OPERATION_EQUALS => [1],
             ],
@@ -775,13 +766,13 @@ class CrudTest extends TestCase
             Comment::FIELD_ID_USER => [
                 FilterParameterInterface::OPERATION_LESS_THAN => [5],
             ],
-            Comment::FIELD_TEXT    => [
+            Comment::FIELD_TEXT => [
                 FilterParameterInterface::OPERATION_LIKE => ['%'],
             ],
         ];
-        $commentSorts   = [
+        $commentSorts = [
             Comment::FIELD_ID_USER => false,
-            Comment::FIELD_TEXT    => true,
+            Comment::FIELD_TEXT => true,
         ];
 
         $data = $crud
@@ -794,20 +785,18 @@ class CrudTest extends TestCase
 
     /**
      * Test read relationship.
-     *
      * @throws Exception
      * @throws DBALException
      */
     public function testReadRelationshipIdentitiesForBelongsToRelationship(): void
     {
-        $this->expectException(\Whoa\Flute\Exceptions\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $this->createCrud(PostsApi::class)->indexRelationshipIdentities(Post::REL_USER);
     }
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -821,12 +810,12 @@ class CrudTest extends TestCase
             ],
         ];
 
-        $data  = $crud->withFilters($filters)->index();
+        $data = $crud->withFilters($filters)->index();
         $users = $data->getData();
         $this->assertNotEmpty($users);
 
         /** @noinspection SqlDialectInspection */
-        $query   = 'SELECT COUNT(*) FROM ' . User::TABLE_NAME . ' WHERE ' . User::FIELD_IS_ACTIVE . ' = 1';
+        $query = 'SELECT COUNT(*) FROM ' . User::TABLE_NAME . ' WHERE ' . User::FIELD_IS_ACTIVE . ' = 1';
         $actives = $this->connection->query($query)->fetch(PDO::FETCH_NUM)[0];
 
         $this->assertEquals($actives, count($users));
@@ -834,7 +823,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -842,7 +830,7 @@ class CrudTest extends TestCase
     {
         $crud = $this->createCrud(PostsApi::class);
 
-        $index   = 2;
+        $index = 2;
         $filters = [
             Post::FIELD_ID => [
                 FilterParameterInterface::OPERATION_EQUALS => [$index],
@@ -859,7 +847,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read typed row.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -868,7 +855,7 @@ class CrudTest extends TestCase
         $crud = $this->createCrud(PostsApi::class);
 
         $builder = $crud->withIndexFilter('1')->createIndexBuilder();
-        $row     = $crud->fetchRow($builder, Post::class);
+        $row = $crud->fetchRow($builder, Post::class);
 
         $this->assertTrue(is_int($row[Post::FIELD_ID_BOARD]));
         $this->assertTrue(is_string($row[Post::FIELD_TEXT]));
@@ -876,7 +863,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read typed row.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -891,12 +877,11 @@ class CrudTest extends TestCase
 
     /**
      * Test invalid argument.
-     *
      * @throws DBALException
      */
     public function testInvalidInputWithEmptyIndexList(): void
     {
-        $this->expectException(\Whoa\Flute\Exceptions\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $crud = $this->createCrud(PostsApi::class);
 
@@ -905,7 +890,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read typed row.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -916,7 +900,7 @@ class CrudTest extends TestCase
         $this->assertTrue($crud instanceof Crud);
 
         $builder = $crud->shouldBeUntyped()->withIndexFilter('1')->createIndexBuilder();
-        $row     = $crud->fetchRow($builder, Post::class);
+        $row = $crud->fetchRow($builder, Post::class);
 
         $this->assertTrue(is_string($row[Post::FIELD_ID_BOARD]));
         $this->assertTrue(is_string($row[Post::FIELD_CREATED_AT]));
@@ -924,7 +908,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read typed row.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -939,11 +922,10 @@ class CrudTest extends TestCase
             ->withColumnMapper(function (string $aliasName, string $columnName, ModelQueryBuilder $builder): string {
                 // a bit naive implementation but fine for testing purposes
                 $quotedColumnName = $builder->quoteDoubleIdentifier($aliasName, $columnName);
-                $dateTimeColumns  = [Post::FIELD_CREATED_AT, Post::FIELD_UPDATED_AT, Post::FIELD_DELETED_AT];
+                $dateTimeColumns = [Model::FIELD_CREATED_AT, Model::FIELD_UPDATED_AT, Model::FIELD_DELETED_AT];
                 if (in_array($columnName, $dateTimeColumns) === true) {
                     // emulate output datetime in JSON API as 2015-05-22T14:56:29.000Z
                     // this function is specific for SQLite
-                    /** @noinspection SpellCheckingInspection */
                     return "strftime('%Y-%m-%dT%H:%M:%fZ', $quotedColumnName) as $columnName";
                 }
 
@@ -952,12 +934,14 @@ class CrudTest extends TestCase
             ->read('1');
 
         $this->assertTrue(is_string($model->{Post::FIELD_ID_BOARD}));
-        $this->assertMatchesRegularExpression('/\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ/', $model->{Post::FIELD_CREATED_AT});
+        $this->assertMatchesRegularExpression(
+            '/\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d.\d\d\dZ/',
+            $model->{Model::FIELD_CREATED_AT}
+        );
     }
 
     /**
      * Test read typed row.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -969,7 +953,7 @@ class CrudTest extends TestCase
             ->withFilters([
                 Post::FIELD_ID => [
                     FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => [5],
-                    FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => [8],
+                    FilterParameterInterface::OPERATION_LESS_OR_EQUALS => [8],
                 ],
             ])
             ->withSorts([
@@ -982,7 +966,6 @@ class CrudTest extends TestCase
 
     /**
      * Test read typed row.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -997,7 +980,7 @@ class CrudTest extends TestCase
             ->withFilters([
                 Post::FIELD_ID => [
                     FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => [5],
-                    FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => [8],
+                    FilterParameterInterface::OPERATION_LESS_OR_EQUALS => [8],
                 ],
             ])
             ->withSorts([
@@ -1010,7 +993,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -1022,7 +1004,7 @@ class CrudTest extends TestCase
             Post::FIELD_ID_USER => [
                 FilterParameterInterface::OPERATION_LESS_THAN => ['5'],
             ],
-            Post::FIELD_TITLE   => [
+            Post::FIELD_TITLE => [
                 FilterParameterInterface::OPERATION_LIKE => ['%'],
             ],
         ];
@@ -1034,7 +1016,6 @@ class CrudTest extends TestCase
 
     /**
      * Test index.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -1055,7 +1036,6 @@ class CrudTest extends TestCase
 
     /**
      * Test check resource exists in relationship.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -1069,9 +1049,7 @@ class CrudTest extends TestCase
 
     /**
      * @param string $class
-     *
      * @return CrudInterface
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -1080,15 +1058,13 @@ class CrudTest extends TestCase
         $container = new Container();
 
         $container[FormatterFactoryInterface::class] = $formatterFactory = new FormatterFactory();
-        $container[Connection::class]                = $this->connection = $this->initDb();
-        $container[FactoryInterface::class]          = $factory = new Factory($container);
-        $container[ModelSchemaInfoInterface::class]  = $modelSchemas = $this->getModelSchemas();
+        $container[Connection::class] = $this->connection = $this->initDb();
+        $container[FactoryInterface::class] = $factory = new Factory($container);
+        $container[ModelSchemaInfoInterface::class] = $modelSchemas = $this->getModelSchemas();
 
         $container[RelationshipPaginationStrategyInterface::class]
             = new BasicRelationshipPaginationStrategy(self::DEFAULT_PAGE);
 
-        $crud = new $class($container);
-
-        return $crud;
+        return new $class($container);
     }
 }

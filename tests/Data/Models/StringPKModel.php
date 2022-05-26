@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,13 +29,13 @@ use Doctrine\DBAL\Types\Types;
 class StringPKModel extends Model
 {
     /** @inheritdoc */
-    const TABLE_NAME = 'string_pk_table';
+    public const TABLE_NAME = 'string_pk_table';
 
     /** @inheritdoc */
-    const FIELD_ID = 'string_pk';
+    public const FIELD_ID = 'string_pk';
 
     /** Field name */
-    const FIELD_NAME = 'name';
+    public const FIELD_NAME = 'name';
 
     /**
      * @inheritdoc
@@ -43,7 +43,7 @@ class StringPKModel extends Model
     public static function getAttributeTypes(): array
     {
         return [
-            self::FIELD_ID   => Types::STRING,
+            self::FIELD_ID => Types::STRING,
             self::FIELD_NAME => Types::STRING,
         ];
     }
@@ -54,7 +54,7 @@ class StringPKModel extends Model
     public static function getAttributeLengths(): array
     {
         return [
-            self::FIELD_ID   => 255,
+            self::FIELD_ID => 255,
             self::FIELD_NAME => 255,
         ];
     }

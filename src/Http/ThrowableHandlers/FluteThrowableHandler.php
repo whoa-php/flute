@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http\ThrowableHandlers;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Http\ThrowableHandlers;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http\ThrowableHandlers;
+
 use Exception;
 use Whoa\Common\Reflection\ClassIsTrait;
 use Whoa\Contracts\Exceptions\ThrowableHandlerInterface;
@@ -31,52 +34,52 @@ use Neomerx\JsonApi\Schema\ErrorCollection;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerAwareTrait;
 use Throwable;
+
 use function array_key_exists;
 use function assert;
 use function get_class;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class FluteThrowableHandler implements ThrowableHandlerInterface
 {
-    use LoggerAwareTrait, ClassIsTrait;
+    use ClassIsTrait;
+    use LoggerAwareTrait;
 
     /**
      * Those classes will not be logged. Note that classes are expected to be keys but not values.
      *
      * @var array
      */
-    private $doNotLogClassesAsKeys;
+    private array $doNotLogClassesAsKeys;
 
     /**
      * @var int
      */
-    private $httpCodeForUnexpected;
+    private int $httpCodeForUnexpected;
 
     /**
      * @var bool
      */
-    private $isDebug;
+    private bool $isDebug;
 
     /**
      * @var EncoderInterface
      */
-    private $encoder;
+    private EncoderInterface $encoder;
 
     /**
      * @var string|null
      */
-    private $throwableConverter;
+    private ?string $throwableConverter;
 
     /**
      * @param EncoderInterface $encoder
-     * @param array            $noLogClassesAsKeys
-     * @param int              $codeForUnexpected
-     * @param bool             $isDebug
-     * @param null|string      $converterClass
+     * @param array $noLogClassesAsKeys
+     * @param int $codeForUnexpected
+     * @param bool $isDebug
+     * @param null|string $converterClass
      */
     public function __construct(
         EncoderInterface $encoder,
@@ -92,21 +95,19 @@ class FluteThrowableHandler implements ThrowableHandlerInterface
 
         $this->doNotLogClassesAsKeys = $noLogClassesAsKeys;
         $this->httpCodeForUnexpected = $codeForUnexpected;
-        $this->isDebug               = $isDebug;
-        $this->encoder               = $encoder;
-        $this->throwableConverter    = $converterClass;
+        $this->isDebug = $isDebug;
+        $this->encoder = $encoder;
+        $this->throwableConverter = $converterClass;
     }
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function createResponse(Throwable $throwable, ContainerInterface $container): ThrowableResponseInterface
     {
         unset($container);
 
-        $message            = 'Internal Server Error';
+        $message = 'Internal Server Error';
         $isJsonApiException = $throwable instanceof JsonApiException;
 
         $this->logError($throwable, $message);
@@ -118,7 +119,7 @@ class FluteThrowableHandler implements ThrowableHandlerInterface
                 $converterClass = $this->throwableConverter;
                 if (($converted = $converterClass::convert($throwable)) !== null) {
                     assert($converted instanceof JsonApiException);
-                    $throwable          = $converted;
+                    $throwable = $converted;
                     $isJsonApiException = true;
                 }
             } catch (Throwable $ignored) {
@@ -128,12 +129,12 @@ class FluteThrowableHandler implements ThrowableHandlerInterface
         // compose JSON API Error with appropriate level of details
         if ($isJsonApiException === true) {
             /** @var JsonApiException $throwable */
-            $errors   = $throwable->getErrors();
+            $errors = $throwable->getErrors();
             $httpCode = $throwable->getHttpCode();
         } else {
-            $errors   = new ErrorCollection();
+            $errors = new ErrorCollection();
             $httpCode = $this->getHttpCodeForUnexpectedThrowable();
-            $details  = null;
+            $details = null;
             if ($this->isDebug === true) {
                 $message = $throwable->getMessage();
                 $details = (string)$throwable;
@@ -149,8 +150,7 @@ class FluteThrowableHandler implements ThrowableHandlerInterface
 
     /**
      * @param Throwable $throwable
-     * @param string    $message
-     *
+     * @param string $message
      * @return void
      */
     private function logError(Throwable $throwable, string $message): void
@@ -174,21 +174,17 @@ class FluteThrowableHandler implements ThrowableHandlerInterface
 
     /**
      * @param Throwable $throwable
-     *
      * @return bool
      */
     private function shouldBeLogged(Throwable $throwable): bool
     {
-        $result = array_key_exists(get_class($throwable), $this->doNotLogClassesAsKeys) === false;
-
-        return $result;
+        return array_key_exists(get_class($throwable), $this->doNotLogClassesAsKeys) === false;
     }
 
     /**
      * @param Throwable $throwable
-     * @param string    $content
-     * @param int       $status
-     *
+     * @param string $content
+     * @param int $status
      * @return ThrowableResponseInterface
      */
     private function createThrowableJsonApiResponse(
@@ -196,17 +192,16 @@ class FluteThrowableHandler implements ThrowableHandlerInterface
         string $content,
         int $status
     ): ThrowableResponseInterface {
-        return new class ($throwable, $content, $status) extends JsonApiResponse implements ThrowableResponseInterface
-        {
+        return new class ($throwable, $content, $status) extends JsonApiResponse implements ThrowableResponseInterface {
             /**
              * @var Throwable
              */
-            private $throwable;
+            private Throwable $throwable;
 
             /**
              * @param Throwable $throwable
-             * @param string    $content
-             * @param int       $status
+             * @param string $content
+             * @param int $status
              */
             public function __construct(Throwable $throwable, string $content, int $status)
             {

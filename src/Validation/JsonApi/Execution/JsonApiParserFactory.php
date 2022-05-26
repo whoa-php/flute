@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\JsonApi\Execution;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute\Validation\JsonApi\Execution;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\JsonApi\Execution;
 
 use Whoa\Container\Traits\HasContainerTrait;
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
@@ -37,8 +40,6 @@ use Psr\Container\NotFoundExceptionInterface;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class JsonApiParserFactory implements JsonApiParserFactoryInterface
 {
@@ -54,8 +55,6 @@ class JsonApiParserFactory implements JsonApiParserFactoryInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public function createDataParser(string $rulesClass): JsonApiDataParserInterface
     {
@@ -63,7 +62,7 @@ class JsonApiParserFactory implements JsonApiParserFactoryInterface
 
         /** @var FormatterFactoryInterface $formatterFactory */
         $formatterFactory = $this->getContainer()->get(FormatterFactoryInterface::class);
-        $parser           = new DataParser(
+        return new DataParser(
             $rulesClass,
             JsonApiDataRulesSerializer::class,
             $serializedData,
@@ -71,14 +70,12 @@ class JsonApiParserFactory implements JsonApiParserFactoryInterface
             new JsonApiErrorCollection($formatterFactory->createFormatter(Messages::NAMESPACE_NAME)),
             $this->getContainer()->get(FormatterFactoryInterface::class)
         );
-
-        return $parser;
     }
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function createQueryParser(string $rulesClass): JsonApiQueryParserInterface
     {
@@ -86,7 +83,7 @@ class JsonApiParserFactory implements JsonApiParserFactoryInterface
 
         /** @var FormatterFactoryInterface $formatterFactory */
         $formatterFactory = $this->getContainer()->get(FormatterFactoryInterface::class);
-        $parser           = new QueryParser(
+        return new QueryParser(
             $rulesClass,
             JsonApiQueryRulesSerializer::class,
             $serializedData,
@@ -96,13 +93,10 @@ class JsonApiParserFactory implements JsonApiParserFactoryInterface
             new JsonApiErrorCollection($formatterFactory->createFormatter(Messages::NAMESPACE_NAME)),
             $this->getContainer()->get(FormatterFactoryInterface::class)
         );
-
-        return $parser;
     }
 
     /**
      * @return array
-     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -110,8 +104,6 @@ class JsonApiParserFactory implements JsonApiParserFactoryInterface
     {
         /** @var SettingsProviderInterface $settingsProvider */
         $settingsProvider = $this->getContainer()->get(SettingsProviderInterface::class);
-        $settings         = $settingsProvider->get(FluteSettings::class);
-
-        return $settings;
+        return $settingsProvider->get(FluteSettings::class);
     }
 }

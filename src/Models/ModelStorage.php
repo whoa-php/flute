@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Models;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +17,13 @@ namespace Whoa\Flute\Models;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Models;
+
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Flute\Contracts\Models\ModelStorageInterface;
+
 use function get_class;
 
 /**
@@ -30,12 +34,12 @@ class ModelStorage implements ModelStorageInterface
     /**
      * @var array
      */
-    private $models = [];
+    private array $models = [];
 
     /**
      * @var ModelSchemaInfoInterface
      */
-    private $schemas;
+    private ModelSchemaInfoInterface $schemas;
 
     /**
      * @param ModelSchemaInfoInterface $schemas
@@ -53,9 +57,9 @@ class ModelStorage implements ModelStorageInterface
         $registered = null;
 
         if ($model !== null) {
-            $class  = get_class($model);
+            $class = get_class($model);
             $pkName = $this->schemas->getPrimaryKey($class);
-            $index  = $model->{$pkName};
+            $index = $model->{$pkName};
 
             $registered = $this->models[$class][$index] ?? null;
             if ($registered === null) {
@@ -71,9 +75,7 @@ class ModelStorage implements ModelStorageInterface
      */
     public function has(string $class, string $index): bool
     {
-        $result = isset($this->models[$class][$index]);
-
-        return $result;
+        return isset($this->models[$class][$index]);
     }
 
     /**
@@ -81,8 +83,6 @@ class ModelStorage implements ModelStorageInterface
      */
     public function get(string $class, string $index)
     {
-        $result = $this->models[$class][$index];
-
-        return $result;
+        return $this->models[$class][$index];
     }
 }

@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Http;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Data\Http;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Http;
 
 use Whoa\Flute\Validation\JsonApi\Rules\DefaultQueryValidationRules;
 use Whoa\Tests\Flute\Data\Api\UsersApi as Api;
@@ -36,27 +39,25 @@ use Psr\Http\Message\ServerRequestInterface;
 class ApiUsersController extends ApiBaseController
 {
     /** @inheritdoc */
-    const API_CLASS = Api::class;
+    public const API_CLASS = Api::class;
 
     /** @inheritdoc */
-    const SCHEMA_CLASS = Schema::class;
+    public const SCHEMA_CLASS = Schema::class;
 
     /** @inheritdoc */
-    const ON_INDEX_QUERY_VALIDATION_RULES_CLASS = ReadUsersQueryRules::class;
+    public const ON_INDEX_QUERY_VALIDATION_RULES_CLASS = ReadUsersQueryRules::class;
 
     /** @inheritdoc */
-    const ON_READ_QUERY_VALIDATION_RULES_CLASS = ReadUsersQueryRules::class;
+    public const ON_READ_QUERY_VALIDATION_RULES_CLASS = ReadUsersQueryRules::class;
 
     /** JSON API validation rules set class */
-    const ON_UPDATE_DATA_VALIDATION_RULES_CLASS = UpdateUserMinimalRules::class;
+    public const ON_UPDATE_DATA_VALIDATION_RULES_CLASS = UpdateUserMinimalRules::class;
 
     /**
-     * @param array                  $routeParams
-     * @param ContainerInterface     $container
+     * @param array $routeParams
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
-     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -75,12 +76,10 @@ class ApiUsersController extends ApiBaseController
     }
 
     /**
-     * @param array                  $routeParams
-     * @param ContainerInterface     $container
+     * @param array $routeParams
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
-     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */

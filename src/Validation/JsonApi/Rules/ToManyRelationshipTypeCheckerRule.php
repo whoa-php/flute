@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ use Whoa\Flute\Contracts\Validation\ErrorCodes;
 use Whoa\Flute\L10n\Messages;
 use Whoa\Validation\Contracts\Execution\ContextInterface;
 use Whoa\Validation\Rules\ExecuteRule;
+
 use function assert;
 use function count;
 use function is_array;
@@ -35,7 +36,7 @@ use function is_array;
 final class ToManyRelationshipTypeCheckerRule extends ExecuteRule
 {
     /** @var int Property key */
-    const PROPERTY_RESOURCE_TYPE = self::PROPERTY_LAST + 1;
+    public const PROPERTY_RESOURCE_TYPE = self::PROPERTY_LAST + 1;
 
     /**
      * @param string $type
@@ -43,7 +44,7 @@ final class ToManyRelationshipTypeCheckerRule extends ExecuteRule
     public function __construct(string $type)
     {
         parent::__construct([
-            static::PROPERTY_RESOURCE_TYPE => $type,
+            ToManyRelationshipTypeCheckerRule::PROPERTY_RESOURCE_TYPE => $type,
         ]);
     }
 
@@ -55,13 +56,15 @@ final class ToManyRelationshipTypeCheckerRule extends ExecuteRule
         // parser guarantees that input will be an array of [$type => $id] where type and id are scalars
 
         // we will check the type of every pair and send further identities only
-        $indexes          = [];
+        $indexes = [];
         $foundInvalidType = null;
-        $expectedType     = $context->getProperties()->getProperty(static::PROPERTY_RESOURCE_TYPE);
+        $expectedType = $context->getProperties()->getProperty(
+            ToManyRelationshipTypeCheckerRule::PROPERTY_RESOURCE_TYPE
+        );
         foreach ($value as $typeAndId) {
             assert(is_array($typeAndId) === true && count($typeAndId) === 1);
             $index = reset($typeAndId);
-            $type  = key($typeAndId);
+            $type = key($typeAndId);
             assert(is_scalar($index) === true && is_scalar($type) === true);
             if ($type === $expectedType) {
                 $indexes[] = $index;
@@ -71,16 +74,14 @@ final class ToManyRelationshipTypeCheckerRule extends ExecuteRule
             }
         }
 
-        $reply = $foundInvalidType === null ?
-            static::createSuccessReply($indexes) :
-            static::createErrorReply(
+        return $foundInvalidType === null ?
+            ToManyRelationshipTypeCheckerRule::createSuccessReply($indexes) :
+            ToManyRelationshipTypeCheckerRule::createErrorReply(
                 $context,
                 $foundInvalidType,
                 ErrorCodes::INVALID_RELATIONSHIP_TYPE,
                 Messages::INVALID_RELATIONSHIP_TYPE,
                 []
             );
-
-        return $reply;
     }
 }

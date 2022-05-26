@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Schemas;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,11 @@ namespace Whoa\Tests\Flute\Data\Schemas;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Schemas;
+
+use Whoa\Tests\Flute\Data\Models\Model as BaseModel;
 use Whoa\Tests\Flute\Data\Models\User as Model;
 
 /**
@@ -26,40 +30,40 @@ use Whoa\Tests\Flute\Data\Models\User as Model;
 class UserSchema extends BaseSchema
 {
     /** Type */
-    const TYPE = 'users';
+    public const TYPE = 'users';
 
     /** Model class name */
-    const MODEL = Model::class;
+    public const MODEL = Model::class;
 
     /** Attribute name */
-    const ATTR_TITLE = 'title-attribute';
+    public const ATTR_TITLE = 'title-attribute';
 
     /** Attribute name */
-    const ATTR_FIRST_NAME = 'first-name-attribute';
+    public const ATTR_FIRST_NAME = 'first-name-attribute';
 
     /** Attribute name */
-    const ATTR_LAST_NAME = 'last-name-attribute';
+    public const ATTR_LAST_NAME = 'last-name-attribute';
 
     /** Attribute name */
-    const ATTR_EMAIL = 'email-attribute';
+    public const ATTR_EMAIL = 'email-attribute';
 
     /** Attribute name */
-    const ATTR_LANGUAGE = 'language-attribute';
+    public const ATTR_LANGUAGE = 'language-attribute';
 
     /** Attribute name */
-    const ATTR_IS_ACTIVE = 'is-active-attribute';
+    public const ATTR_IS_ACTIVE = 'is-active-attribute';
 
     /** Attribute name */
-    const D_ATTR_FULL_NAME = 'd-full-name-attribute';
+    public const D_ATTR_FULL_NAME = 'd-full-name-attribute';
 
     /** Relationship name */
-    const REL_ROLE = 'role-relationship';
+    public const REL_ROLE = 'role-relationship';
 
     /** Relationship name */
-    const REL_POSTS = 'posts-relationship';
+    public const REL_POSTS = 'posts-relationship';
 
     /** Relationship name */
-    const REL_COMMENTS = 'comments-relationship';
+    public const REL_COMMENTS = 'comments-relationship';
 
     /**
      * @inheritdoc
@@ -68,21 +72,21 @@ class UserSchema extends BaseSchema
     {
         return [
             self::SCHEMA_ATTRIBUTES => [
-                self::RESOURCE_ID      => Model::FIELD_ID,
-                self::ATTR_TITLE       => Model::FIELD_TITLE,
-                self::ATTR_FIRST_NAME  => Model::FIELD_FIRST_NAME,
-                self::ATTR_LAST_NAME   => Model::FIELD_LAST_NAME,
-                self::ATTR_EMAIL       => Model::FIELD_EMAIL,
-                self::ATTR_LANGUAGE    => Model::FIELD_LANGUAGE,
-                self::ATTR_IS_ACTIVE   => Model::FIELD_IS_ACTIVE,
-                self::ATTR_CREATED_AT  => Model::FIELD_CREATED_AT,
-                self::ATTR_UPDATED_AT  => Model::FIELD_UPDATED_AT,
+                self::RESOURCE_ID => Model::FIELD_ID,
+                self::ATTR_TITLE => Model::FIELD_TITLE,
+                self::ATTR_FIRST_NAME => Model::FIELD_FIRST_NAME,
+                self::ATTR_LAST_NAME => Model::FIELD_LAST_NAME,
+                self::ATTR_EMAIL => Model::FIELD_EMAIL,
+                self::ATTR_LANGUAGE => Model::FIELD_LANGUAGE,
+                self::ATTR_IS_ACTIVE => Model::FIELD_IS_ACTIVE,
+                self::ATTR_CREATED_AT => BaseModel::FIELD_CREATED_AT,
+                self::ATTR_UPDATED_AT => BaseModel::FIELD_UPDATED_AT,
 
                 self::D_ATTR_FULL_NAME => Model::D_FIELD_FULL_NAME,
             ],
             self::SCHEMA_RELATIONSHIPS => [
-                self::REL_ROLE     => Model::REL_ROLE,
-                self::REL_POSTS    => Model::REL_AUTHORED_POSTS,
+                self::REL_ROLE => Model::REL_ROLE,
+                self::REL_POSTS => Model::REL_AUTHORED_POSTS,
                 self::REL_COMMENTS => Model::REL_COMMENTS,
             ],
         ];

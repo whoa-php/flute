@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ declare (strict_types=1);
 namespace Whoa\Tests\Flute\Data\Validation\JsonData;
 
 use Whoa\Flute\Contracts\Validation\JsonApiDataRulesInterface;
+use Whoa\Tests\Flute\Data\Schemas\BaseSchema;
 use Whoa\Tests\Flute\Data\Schemas\CommentSchema as Schema;
 use Whoa\Tests\Flute\Data\Schemas\EmotionSchema;
 use Whoa\Tests\Flute\Data\Schemas\PostSchema;
@@ -56,7 +57,7 @@ class UpdateCommentRules implements JsonApiDataRulesInterface
     {
         return [
             Schema::ATTR_TEXT => v::isString(),
-            Schema::ATTR_UUID => v::stringToUuid(v::isUuid()),
+            BaseSchema::ATTR_UUID => v::stringToUuid(v::isUuid()),
         ];
     }
 

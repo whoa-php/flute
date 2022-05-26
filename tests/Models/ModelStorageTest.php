@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Models;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Models;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Models;
 
 use Exception;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
@@ -32,7 +35,6 @@ class ModelStorageTest extends TestCase
 {
     /**
      * Test storage.
-     *
      * @throws Exception
      */
     public function testStorage(): void
@@ -40,7 +42,7 @@ class ModelStorageTest extends TestCase
         $storage = new ModelStorage($this->createSchemaStorage());
 
         $post1 = new Post();
-        $post1->{Post::FIELD_ID}    = 1;
+        $post1->{Post::FIELD_ID} = 1;
         $post1->{Post::FIELD_TITLE} = 'some title';
 
         $post2 = clone $post1;

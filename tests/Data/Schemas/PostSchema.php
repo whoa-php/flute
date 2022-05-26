@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Schemas;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,11 @@ namespace Whoa\Tests\Flute\Data\Schemas;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Schemas;
+
+use Whoa\Tests\Flute\Data\Models\Model as BaseModel;
 use Whoa\Tests\Flute\Data\Models\Post as Model;
 
 /**
@@ -26,28 +30,28 @@ use Whoa\Tests\Flute\Data\Models\Post as Model;
 class PostSchema extends BaseSchema
 {
     /** Type */
-    const TYPE = 'posts';
+    public const TYPE = 'posts';
 
     /** Model class name */
-    const MODEL = Model::class;
+    public const MODEL = Model::class;
 
     /** Attribute name */
-    const ATTR_TITLE = 'title-attribute';
+    public const ATTR_TITLE = 'title-attribute';
 
     /** Attribute name */
-    const ATTR_TEXT = 'text-attribute';
+    public const ATTR_TEXT = 'text-attribute';
 
     /** Relationship name */
-    const REL_USER = 'user-relationship';
+    public const REL_USER = 'user-relationship';
 
     /** Relationship name */
-    const REL_EDITOR = 'editor-relationship';
+    public const REL_EDITOR = 'editor-relationship';
 
     /** Relationship name */
-    const REL_BOARD = 'board-relationship';
+    public const REL_BOARD = 'board-relationship';
 
     /** Relationship name */
-    const REL_COMMENTS = 'comments-relationship';
+    public const REL_COMMENTS = 'comments-relationship';
 
     /**
      * @inheritdoc
@@ -56,16 +60,16 @@ class PostSchema extends BaseSchema
     {
         return [
             self::SCHEMA_ATTRIBUTES => [
-                self::RESOURCE_ID     => Model::FIELD_ID,
-                self::ATTR_TITLE      => Model::FIELD_TITLE,
-                self::ATTR_TEXT       => Model::FIELD_TEXT,
-                self::ATTR_CREATED_AT => Model::FIELD_CREATED_AT,
-                self::ATTR_UPDATED_AT => Model::FIELD_UPDATED_AT,
+                self::RESOURCE_ID => Model::FIELD_ID,
+                self::ATTR_TITLE => Model::FIELD_TITLE,
+                self::ATTR_TEXT => Model::FIELD_TEXT,
+                self::ATTR_CREATED_AT => BaseModel::FIELD_CREATED_AT,
+                self::ATTR_UPDATED_AT => BaseModel::FIELD_UPDATED_AT,
             ],
             self::SCHEMA_RELATIONSHIPS => [
-                self::REL_USER     => Model::REL_USER,
-                self::REL_EDITOR   => Model::REL_EDITOR,
-                self::REL_BOARD    => Model::REL_BOARD,
+                self::REL_USER => Model::REL_USER,
+                self::REL_EDITOR => Model::REL_EDITOR,
+                self::REL_BOARD => Model::REL_BOARD,
                 self::REL_COMMENTS => Model::REL_COMMENTS,
             ],
         ];

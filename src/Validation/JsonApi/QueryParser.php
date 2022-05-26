@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,6 +41,7 @@ use Neomerx\JsonApi\Contracts\Schema\ErrorInterface;
 use Neomerx\JsonApi\Exceptions\JsonApiException;
 use Neomerx\JsonApi\Http\Query\BaseQueryParserTrait;
 use Neomerx\JsonApi\Schema\Error as JsonApiError;
+
 use function array_key_exists;
 use function assert;
 use function count;
@@ -54,13 +55,6 @@ use function trim;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.TooManyFields)
- * @SuppressWarnings(PHPMD.TooManyMethods)
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
- * @SuppressWarnings(PHPMD.ExcessiveClassLength)
  */
 class QueryParser implements JsonApiQueryParserInterface
 {
@@ -77,41 +71,40 @@ class QueryParser implements JsonApiQueryParserInterface
     /**
      * @var array
      */
-    private $parameters;
+    private array $parameters;
 
     /**
      * @var string[]|null
      */
-    private $messages;
+    private ?array $messages;
 
     /**
      * @var null|string
      */
-    private $identityParameter;
+    private ?string $identityParameter;
 
     /**
      * @var array
      */
-    private $filterParameters;
+    private array $filterParameters;
 
     /**
      * @var bool
      */
-    private $areFiltersWithAnd;
+    private bool $areFiltersWithAnd;
 
     /**
      * @var int|null
      */
-    private $pagingOffset;
+    private ?int $pagingOffset;
 
     /**
      * @var int|null
      */
-    private $pagingLimit;
+    private ?int $pagingLimit;
 
     /**
      * NOTE: Despite the type it is just a string so only static methods can be called from the interface.
-     *
      * @var JsonApiQueryRulesSerializerInterface|string
      */
     private $serializerClass;
@@ -119,32 +112,32 @@ class QueryParser implements JsonApiQueryParserInterface
     /**
      * @var array
      */
-    private $serializedRuleSet;
+    private array $serializedRuleSet;
 
     /**
      * @var array
      */
-    private $validationBlocks;
+    private array $validationBlocks;
 
     /**
      * @var ContextStorageInterface
      */
-    private $context;
+    private ContextStorageInterface $context;
 
     /**
      * @var CaptureAggregatorInterface
      */
-    private $captures;
+    private CaptureAggregatorInterface $captures;
 
     /**
      * @var ErrorAggregatorInterface
      */
-    private $validationErrors;
+    private ErrorAggregatorInterface $validationErrors;
 
     /**
      * @var JsonApiErrorCollection
      */
-    private $jsonErrors;
+    private JsonApiErrorCollection $jsonErrors;
 
     /**
      * @var null|mixed
@@ -154,43 +147,43 @@ class QueryParser implements JsonApiQueryParserInterface
     /**
      * @var null|array
      */
-    private $cachedFilters = null;
+    private ?array $cachedFilters = null;
 
     /**
      * @var null|array
      */
-    private $cachedFields = null;
+    private ?array $cachedFields = null;
 
     /**
      * @var null|array
      */
-    private $cachedSorts = null;
+    private ?array $cachedSorts = null;
 
     /**
      * @var null|array
      */
-    private $cachedIncludes = null;
+    private ?array $cachedIncludes = null;
 
     /**
      * @var FormatterFactoryInterface
      */
-    private $formatterFactory;
+    private FormatterFactoryInterface $formatterFactory;
 
     /**
      * @var FormatterInterface|null
      */
-    private $formatter;
+    private ?FormatterInterface $formatter = null;
 
     /**
-     * @param string                     $rulesClass
-     * @param string                     $serializerClass
-     * @param array                      $serializedData
-     * @param ContextStorageInterface    $context
+     * @param string $rulesClass
+     * @param string $serializerClass
+     * @param array $serializedData
+     * @param ContextStorageInterface $context
      * @param CaptureAggregatorInterface $captures
-     * @param ErrorAggregatorInterface   $validationErrors
-     * @param JsonApiErrorCollection     $jsonErrors
-     * @param FormatterFactoryInterface  $formatterFactory
-     * @param string[]|null              $messages
+     * @param ErrorAggregatorInterface $validationErrors
+     * @param JsonApiErrorCollection $jsonErrors
+     * @param FormatterFactoryInterface $formatterFactory
+     * @param string[]|null $messages
      */
     public function __construct(
         string $rulesClass,
@@ -202,23 +195,22 @@ class QueryParser implements JsonApiQueryParserInterface
         JsonApiErrorCollection $jsonErrors,
         FormatterFactoryInterface $formatterFactory,
         array $messages = null
-    )
-    {
+    ) {
         assert(static::classImplements($rulesClass, JsonApiQueryRulesInterface::class));
         assert(static::classImplements($serializerClass, JsonApiQueryRulesSerializerInterface::class));
 
         $parameters = [];
         $this->setParameters($parameters)->setMessages($messages);
-        $this->serializerClass  = $serializerClass;
-        $this->context          = $context;
-        $this->captures         = $captures;
+        $this->serializerClass = $serializerClass;
+        $this->context = $context;
+        $this->captures = $captures;
         $this->validationErrors = $validationErrors;
-        $this->jsonErrors       = $jsonErrors;
+        $this->jsonErrors = $jsonErrors;
         $this->formatterFactory = $formatterFactory;
 
         assert($this->serializerClass::hasRules($rulesClass, $serializedData));
         $this->serializedRuleSet = $this->serializerClass::readRules($rulesClass, $serializedData);
-        $this->validationBlocks  = $this->serializerClass::readBlocks($serializedData);
+        $this->validationBlocks = $this->serializerClass::readBlocks($serializedData);
 
         $this->clear();
     }
@@ -315,7 +307,7 @@ class QueryParser implements JsonApiQueryParserInterface
     public function getFields(): array
     {
         if ($this->cachedFields === null) {
-            $fields             = $this->getFieldsImpl($this->getParameters(), $this->getInvalidParamMessage());
+            $fields = $this->getFieldsImpl($this->getParameters(), $this->getInvalidParamMessage());
             $this->cachedFields = $this->iterableToArray($this->getValidatedFields($fields));
         }
 
@@ -328,7 +320,7 @@ class QueryParser implements JsonApiQueryParserInterface
     public function getSorts(): array
     {
         if ($this->cachedSorts === null) {
-            $sorts             = $this->getSortsImpl($this->getParameters(), $this->getInvalidParamMessage());
+            $sorts = $this->getSortsImpl($this->getParameters(), $this->getInvalidParamMessage());
             $this->cachedSorts = $this->iterableToArray($this->getValidatedSorts($sorts));
         }
 
@@ -341,7 +333,7 @@ class QueryParser implements JsonApiQueryParserInterface
     public function getIncludes(): iterable
     {
         if ($this->cachedIncludes === null) {
-            $includes             = $this->getIncludesImpl($this->getParameters(), $this->getInvalidParamMessage());
+            $includes = $this->getIncludesImpl($this->getParameters(), $this->getInvalidParamMessage());
             $this->cachedIncludes = $this->iterableToArray($this->getValidatedIncludes($includes));
         }
 
@@ -366,7 +358,6 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param array $parameters
-     *
      * @return self
      */
     protected function setParameters(array $parameters): self
@@ -385,8 +376,7 @@ class QueryParser implements JsonApiQueryParserInterface
     }
 
     /**
-     * @param array $messages
-     *
+     * @param array|null $messages
      * @return self
      */
     protected function setMessages(?array $messages): self
@@ -398,7 +388,6 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string $message
-     *
      * @return string
      */
     protected function getMessage(string $message): string
@@ -512,8 +501,6 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @return iterable
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function getValidatedFilters(): iterable
     {
@@ -532,10 +519,12 @@ class QueryParser implements JsonApiQueryParserInterface
                 if (is_string($field) === false || empty($field) === true ||
                     is_array($operationsWithArgs) === false || empty($operationsWithArgs) === true
                 ) {
-                    throw new InvalidQueryParametersException($this->createParameterError(
-                        static::PARAM_FILTER,
-                        $this->getInvalidParamMessage()
-                    ));
+                    throw new InvalidQueryParametersException(
+                        $this->createParameterError(
+                            static::PARAM_FILTER,
+                            $this->getInvalidParamMessage()
+                        )
+                    );
                 }
 
                 if (array_key_exists($field, $mainIndexes) === false) {
@@ -552,7 +541,7 @@ class QueryParser implements JsonApiQueryParserInterface
                 } else {
                     // for field a validation rule is defined so input value will be validated
                     $ruleIndex = $mainIndexes[$field];
-                    $parsed    = $this->parseOperationsAndArguments(static::PARAM_FILTER, $operationsWithArgs);
+                    $parsed = $this->parseOperationsAndArguments(static::PARAM_FILTER, $operationsWithArgs);
 
                     yield $field => $this->validateFilterArguments($ruleIndex, $parsed);
                 }
@@ -563,11 +552,7 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param iterable $fieldsFromParent
-     *
      * @return iterable
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function getValidatedFields(iterable $fieldsFromParent): iterable
     {
@@ -604,11 +589,7 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param iterable $sortsFromParent
-     *
      * @return iterable
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function getValidatedSorts(iterable $sortsFromParent): iterable
     {
@@ -636,11 +617,7 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param iterable $includesFromParent
-     *
      * @return iterable
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function getValidatedIncludes(iterable $includesFromParent): iterable
     {
@@ -668,7 +645,6 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param iterable $iterable
-     *
      * @return array
      */
     private function iterableToArray(iterable $iterable): array
@@ -684,34 +660,27 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param mixed $value
-     *
      * @return int
      */
     private function validatePageOffset($value): int
     {
-        $ruleIndexes    = $this->serializerClass::readPageOffsetRuleIndexes($this->getSerializedRuleSet());
-        $validatedValue = $this->validatePaginationValue($value, $ruleIndexes);
-
-        return $validatedValue;
+        $ruleIndexes = $this->serializerClass::readPageOffsetRuleIndexes($this->getSerializedRuleSet());
+        return $this->validatePaginationValue($value, $ruleIndexes);
     }
 
     /**
      * @param mixed $value
-     *
      * @return int
      */
     private function validatePageLimit($value): int
     {
-        $ruleIndexes    = $this->serializerClass::readPageLimitRuleIndexes($this->getSerializedRuleSet());
-        $validatedValue = $this->validatePaginationValue($value, $ruleIndexes);
-
-        return $validatedValue;
+        $ruleIndexes = $this->serializerClass::readPageLimitRuleIndexes($this->getSerializedRuleSet());
+        return $this->validatePaginationValue($value, $ruleIndexes);
     }
 
     /**
      * @param mixed $value
-     * @param array $ruleIndexes
-     *
+     * @param array|null $ruleIndexes
      * @return int
      */
     private function validatePaginationValue($value, ?array $ruleIndexes): int
@@ -734,11 +703,8 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string $paramName
-     * @param array  $ruleIndexes
-     *
+     * @param array $ruleIndexes
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function validationStarts(string $paramName, array $ruleIndexes): void
     {
@@ -756,12 +722,9 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string $paramName
-     * @param mixed  $value
-     * @param int    $ruleIndex
-     *
+     * @param mixed $value
+     * @param int $ruleIndex
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function validateAndThrowOnError(string $paramName, $value, int $ruleIndex): void
     {
@@ -778,11 +741,8 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param mixed $value
-     * @param int   $ruleIndex
-     *
+     * @param int $ruleIndex
      * @return bool
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function validateAndAccumulateError($value, int $ruleIndex): bool
     {
@@ -798,11 +758,8 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string $paramName
-     * @param array  $ruleIndexes
-     *
+     * @param array $ruleIndexes
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function validateEnds(string $paramName, array $ruleIndexes): void
     {
@@ -821,15 +778,12 @@ class QueryParser implements JsonApiQueryParserInterface
     private function readSingleCapturedValue()
     {
         assert(count($this->getCaptures()->get()) === 1, 'Expected that only one value would be captured.');
-        $value = current($this->getCaptures()->get());
-
-        return $value;
+        return current($this->getCaptures()->get());
     }
 
     /**
-     * @param int      $ruleIndex
+     * @param int $ruleIndex
      * @param iterable $values
-     *
      * @return iterable
      */
     private function validateValues(int $ruleIndex, iterable $values): iterable
@@ -844,9 +798,8 @@ class QueryParser implements JsonApiQueryParserInterface
     }
 
     /**
-     * @param int      $ruleIndex
+     * @param int $ruleIndex
      * @param iterable $opsAndArgs
-     *
      * @return iterable
      */
     private function validateFilterArguments(int $ruleIndex, iterable $opsAndArgs): iterable
@@ -861,12 +814,12 @@ class QueryParser implements JsonApiQueryParserInterface
      */
     private function parsePagingParameters(): self
     {
-        $parameters    = $this->getParameters();
+        $parameters = $this->getParameters();
         $mightBeOffset = $parameters[static::PARAM_PAGE][static::PARAM_PAGING_OFFSET] ?? null;
-        $mightBeLimit  = $parameters[static::PARAM_PAGE][static::PARAM_PAGING_LIMIT] ?? null;
+        $mightBeLimit = $parameters[static::PARAM_PAGE][static::PARAM_PAGING_LIMIT] ?? null;
 
         $this->pagingOffset = $this->validatePageOffset($mightBeOffset);
-        $this->pagingLimit  = $this->validatePageLimit($mightBeLimit);
+        $this->pagingLimit = $this->validatePageLimit($mightBeLimit);
 
         assert(is_int($this->pagingOffset) === true && $this->pagingOffset >= 0);
         assert(is_int($this->pagingLimit) === true && $this->pagingLimit > 0);
@@ -876,9 +829,7 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string $paramName
-     *
      * @return void
-     *
      * @throws JsonApiException
      */
     private function checkValidationQueueErrors(string $paramName): void
@@ -894,7 +845,6 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string|null $value
-     *
      * @return self
      */
     private function setIdentityParameter(?string $value): self
@@ -914,7 +864,6 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param array $values
-     *
      * @return self
      */
     private function setFilterParameters(array $values): self
@@ -958,16 +907,16 @@ class QueryParser implements JsonApiQueryParserInterface
     private function clear(): self
     {
         $this->identityParameter = null;
-        $this->filterParameters  = [];
+        $this->filterParameters = [];
         $this->areFiltersWithAnd = true;
-        $this->pagingOffset      = null;
-        $this->pagingLimit       = null;
+        $this->pagingOffset = null;
+        $this->pagingLimit = null;
 
         $this->cachedIdentity = null;
-        $this->cachedFilters  = null;
-        $this->cachedFields   = null;
+        $this->cachedFilters = null;
+        $this->cachedFields = null;
         $this->cachedIncludes = null;
-        $this->cachedSorts    = null;
+        $this->cachedSorts = null;
 
         $this->getCaptures()->clear();
         $this->getValidationErrors()->clear();
@@ -977,11 +926,7 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * Pre-parsing for filter parameters.
-     *
      * @return self
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function parseFilterLink(): self
     {
@@ -993,27 +938,31 @@ class QueryParser implements JsonApiQueryParserInterface
 
         $filterSection = $this->getParameters()[static::PARAM_FILTER];
         if (is_array($filterSection) === false || empty($filterSection) === true) {
-            throw new InvalidQueryParametersException($this->createParameterError(
-                static::PARAM_FILTER,
-                $this->getInvalidParamMessage()
-            ));
+            throw new InvalidQueryParametersException(
+                $this->createParameterError(
+                    static::PARAM_FILTER,
+                    $this->getInvalidParamMessage()
+                )
+            );
         }
 
         $isWithAnd = true;
         reset($filterSection);
 
         // check if top level element is `AND` or `OR`
-        $firstKey   = key($filterSection);
+        $firstKey = key($filterSection);
         $firstLcKey = strtolower(trim($firstKey));
         if (($hasOr = ($firstLcKey === 'or')) || $firstLcKey === 'and') {
             if (count($filterSection) > 1 ||
                 empty($filterSection = $filterSection[$firstKey]) === true ||
                 is_array($filterSection) === false
             ) {
-                throw new InvalidQueryParametersException($this->createParameterError(
-                    static::PARAM_FILTER,
-                    $this->getInvalidParamMessage()
-                ));
+                throw new InvalidQueryParametersException(
+                    $this->createParameterError(
+                        static::PARAM_FILTER,
+                        $this->getInvalidParamMessage()
+                    )
+                );
             } else {
                 $this->setFilterParameters($filterSection);
                 if ($hasOr === true) {
@@ -1031,11 +980,8 @@ class QueryParser implements JsonApiQueryParserInterface
 
     /**
      * @param string $parameterName
-     * @param array  $value
-     *
+     * @param array $value
      * @return iterable
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function parseOperationsAndArguments(string $parameterName, array $value): iterable
     {
@@ -1064,19 +1010,15 @@ class QueryParser implements JsonApiQueryParserInterface
     /**
      * @param string $paramName
      * @param string $errorTitle
-     *
      * @return ErrorInterface
      */
     private function createQueryError(string $paramName, string $errorTitle): ErrorInterface
     {
         $source = [ErrorInterface::SOURCE_PARAMETER => $paramName];
-        $error  = new JsonApiError(null, null, null, null, null, $errorTitle, null, $source);
-
-        return $error;
+        return new JsonApiError(null, null, null, null, null, $errorTitle, null, $source);
     }
 
     /**
-     *
      * @return string
      */
     private function getInvalidParamMessage(): string

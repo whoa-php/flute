@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http\Query;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Http\Query;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http\Query;
+
 use Whoa\Flute\Contracts\Http\Query\AttributeInterface;
 use Whoa\Flute\Contracts\Http\Query\FilterParameterInterface;
 use Whoa\Flute\Contracts\Http\Query\RelationshipInterface;
@@ -30,21 +33,21 @@ class FilterParameter implements FilterParameterInterface
     /**
      * @var AttributeInterface
      */
-    private $attribute;
+    private AttributeInterface $attribute;
 
     /**
      * @var RelationshipInterface|null
      */
-    private $relationship;
+    private ?RelationshipInterface $relationship;
 
     /**
      * @var iterable
      */
-    private $operationsWithArguments;
+    private iterable $operationsWithArguments;
 
     /**
-     * @param AttributeInterface         $attribute
-     * @param iterable                   $operationsWithArgs
+     * @param AttributeInterface $attribute
+     * @param iterable $operationsWithArgs
      * @param RelationshipInterface|null $relationship
      */
     public function __construct(
@@ -52,8 +55,8 @@ class FilterParameter implements FilterParameterInterface
         iterable $operationsWithArgs,
         RelationshipInterface $relationship = null
     ) {
-        $this->attribute               = $attribute;
-        $this->relationship            = $relationship;
+        $this->attribute = $attribute;
+        $this->relationship = $relationship;
         $this->operationsWithArguments = $operationsWithArgs;
     }
 

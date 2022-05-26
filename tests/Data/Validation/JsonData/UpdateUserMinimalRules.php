@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Validation\JsonData;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Data\Validation\JsonData;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Validation\JsonData;
+
 use Whoa\Flute\Contracts\Validation\JsonApiDataRulesInterface;
 use Whoa\Tests\Flute\Data\Schemas\UserSchema as Schema;
 use Whoa\Tests\Flute\Data\Validation\AppRules as v;
@@ -25,7 +28,6 @@ use Whoa\Validation\Contracts\Rules\RuleInterface;
 
 /**
  * @package Whoa\Tests\Flute
- *
  * Special minimal rule set for testing library code. It does not check user data fully.
  */
 class UpdateUserMinimalRules implements JsonApiDataRulesInterface

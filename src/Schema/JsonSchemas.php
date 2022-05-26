@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Schema;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +17,17 @@ namespace Whoa\Flute\Schema;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Schema;
+
 use Whoa\Common\Reflection\ClassIsTrait;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Flute\Contracts\Schema\JsonSchemasInterface;
 use Whoa\Flute\Contracts\Schema\SchemaInterface;
 use Neomerx\JsonApi\Contracts\Factories\FactoryInterface;
 use Neomerx\JsonApi\Contracts\Schema\SchemaInterface as JsonSchemaInterface;
+
 use function array_key_exists;
 use function assert;
 use function get_class;
@@ -39,32 +43,32 @@ class JsonSchemas implements JsonSchemasInterface
     /**
      * @var FactoryInterface
      */
-    private $factory;
+    private FactoryInterface $factory;
 
     /**
      * @var array
      */
-    private $modelToSchemaMap;
+    private array $modelToSchemaMap;
 
     /**
      * @var array
      */
-    private $typeToSchemaMap;
+    private array $typeToSchemaMap;
 
     /**
      * @var array
      */
-    private $schemaInstances = [];
+    private array $schemaInstances = [];
 
     /**
      * @var ModelSchemaInfoInterface
      */
-    private $modelSchemas;
+    private ModelSchemaInfoInterface $modelSchemas;
 
     /**
-     * @param FactoryInterface         $factory
-     * @param array                    $modelToSchemaMap
-     * @param array                    $typeToSchemaMap
+     * @param FactoryInterface $factory
+     * @param array $modelToSchemaMap
+     * @param array $typeToSchemaMap
      * @param ModelSchemaInfoInterface $modelSchemas
      */
     public function __construct(
@@ -73,10 +77,10 @@ class JsonSchemas implements JsonSchemasInterface
         array $typeToSchemaMap,
         ModelSchemaInfoInterface $modelSchemas
     ) {
-        $this->factory          = $factory;
+        $this->factory = $factory;
         $this->modelToSchemaMap = $modelToSchemaMap;
-        $this->typeToSchemaMap  = $typeToSchemaMap;
-        $this->modelSchemas     = $modelSchemas;
+        $this->typeToSchemaMap = $typeToSchemaMap;
+        $this->modelSchemas = $modelSchemas;
     }
 
     /**
@@ -124,9 +128,7 @@ class JsonSchemas implements JsonSchemasInterface
         /** @var SchemaInterface $schemaClass */
 
         $modelRelName = $schemaClass::getMappings()[SchemaInterface::SCHEMA_RELATIONSHIPS][$relationshipName];
-        $targetSchema = $this->getModelRelationshipSchema($schemaClass::MODEL, $modelRelName);
-
-        return $targetSchema;
+        return $this->getModelRelationshipSchema($schemaClass::MODEL, $modelRelName);
     }
 
     /**
@@ -137,9 +139,7 @@ class JsonSchemas implements JsonSchemasInterface
         $reverseModelClass = $this->getModelSchemas()->getReverseModelClass($modelClass, $relationshipName);
 
         /** @var SchemaInterface $targetSchema */
-        $targetSchema = $this->getSchemaByModelClass($reverseModelClass);
-
-        return $targetSchema;
+        return $this->getSchemaByModelClass($reverseModelClass);
     }
 
     /**
@@ -172,7 +172,6 @@ class JsonSchemas implements JsonSchemasInterface
 
     /**
      * @param mixed $resource
-     *
      * @return string
      */
     private function getResourceClass($resource): string
@@ -199,7 +198,6 @@ class JsonSchemas implements JsonSchemasInterface
 
     /**
      * @param string $schemaClass
-     *
      * @return SchemaInterface
      */
     private function getSchemaByClass(string $schemaClass): JsonSchemaInterface

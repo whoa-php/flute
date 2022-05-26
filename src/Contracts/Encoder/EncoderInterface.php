@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Encoder;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,11 @@ namespace Whoa\Flute\Contracts\Encoder;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Encoder;
+
 use Psr\Http\Message\UriInterface;
 
 /**
@@ -26,7 +30,6 @@ interface EncoderInterface extends \Neomerx\JsonApi\Contracts\Encoder\EncoderInt
 {
     /**
      * @param UriInterface $uri
-     *
      * @return self
      */
     public function forOriginalUri(UriInterface $uri): self;

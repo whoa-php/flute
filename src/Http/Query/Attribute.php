@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http\Query;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Http\Query;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http\Query;
+
 use Whoa\Flute\Contracts\Http\Query\AttributeInterface;
 use Whoa\Flute\Contracts\Schema\SchemaInterface;
 
@@ -29,26 +32,26 @@ class Attribute implements AttributeInterface
     /**
      * @var string
      */
-    private $nameInSchema;
+    private string $nameInSchema;
 
     /**
-     * @var string
+     * @var string|null
      */
-    private $nameInModel;
+    private ?string $nameInModel;
 
     /**
      * @var SchemaInterface
      */
-    private $schema;
+    private SchemaInterface $schema;
 
     /**
-     * @param string          $nameInSchema
+     * @param string $nameInSchema
      * @param SchemaInterface $schema
      */
     public function __construct(string $nameInSchema, SchemaInterface $schema)
     {
         $this->nameInSchema = $nameInSchema;
-        $this->schema       = $schema;
+        $this->schema = $schema;
 
         $this->nameInModel = null;
     }
@@ -72,7 +75,7 @@ class Attribute implements AttributeInterface
     /**
      * @return string
      */
-    public function getNameInModel():string
+    public function getNameInModel(): string
     {
         if ($this->nameInModel === null) {
             $this->nameInModel = $this->getSchema()->getAttributeMapping($this->getNameInSchema());

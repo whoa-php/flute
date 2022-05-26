@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute\Http;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http;
 
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
@@ -39,25 +42,27 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
     use DefaultControllerMethodsTrait;
 
     /** @var string|null API class name */
-    const API_CLASS = null;
+    public const API_CLASS = null;
 
     /** @var string|null JSON API Schema class name */
-    const SCHEMA_CLASS = null;
+    public const SCHEMA_CLASS = null;
 
     /** @var string|null @var string|null JSON API query validation rules class */
-    const ON_INDEX_QUERY_VALIDATION_RULES_CLASS = null;
+    public const ON_INDEX_QUERY_VALIDATION_RULES_CLASS = null;
 
     /** @var string|null @var string|null JSON API query validation rules class */
-    const ON_READ_QUERY_VALIDATION_RULES_CLASS = null;
+    public const ON_READ_QUERY_VALIDATION_RULES_CLASS = null;
 
     /** @var string|null @var string|null JSON API data validation rules class */
-    const ON_CREATE_DATA_VALIDATION_RULES_CLASS = null;
+    public const ON_CREATE_DATA_VALIDATION_RULES_CLASS = null;
 
     /** @var string|null JSON API data validation rules class */
-    const ON_UPDATE_DATA_VALIDATION_RULES_CLASS = null;
+    public const ON_UPDATE_DATA_VALIDATION_RULES_CLASS = null;
 
     /**
      * @inheritdoc
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function index(
         array $routeParams,
@@ -80,6 +85,8 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
 
     /**
      * @inheritdoc
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function create(
         array $routeParams,
@@ -90,7 +97,7 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
         static::assertClassValueDefined(static::SCHEMA_CLASS);
         static::assertClassValueDefined(static::ON_CREATE_DATA_VALIDATION_RULES_CLASS);
 
-        $response = static::defaultCreateHandler(
+        return static::defaultCreateHandler(
             $request->getUri(),
             (string)$request->getBody(),
             static::SCHEMA_CLASS,
@@ -102,12 +109,12 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
             $container->get(FactoryInterface::class),
             $container->get(FormatterFactoryInterface::class)
         );
-
-        return $response;
     }
 
     /**
      * @inheritdoc
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function read(
         array $routeParams,
@@ -131,6 +138,8 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
 
     /**
      * @inheritdoc
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function update(
         array $routeParams,
@@ -141,7 +150,7 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
         static::assertClassValueDefined(static::SCHEMA_CLASS);
         static::assertClassValueDefined(static::ON_UPDATE_DATA_VALIDATION_RULES_CLASS);
 
-        $response = static::defaultUpdateHandler(
+        return static::defaultUpdateHandler(
             (string)$routeParams[static::ROUTE_KEY_INDEX],
             $request->getUri(),
             (string)$request->getBody(),
@@ -153,12 +162,12 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
             $container->get(FactoryInterface::class),
             $container->get(FormatterFactoryInterface::class)
         );
-
-        return $response;
     }
 
     /**
      * @inheritdoc
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function delete(
         array $routeParams,
@@ -167,26 +176,22 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
     ): ResponseInterface {
         static::assertClassValueDefined(static::API_CLASS);
 
-        $response = static::defaultDeleteHandler(
+        return static::defaultDeleteHandler(
             (string)$routeParams[static::ROUTE_KEY_INDEX],
             $request->getUri(),
             static::defaultCreateQueryParser($container, static::ON_READ_QUERY_VALIDATION_RULES_CLASS),
             static::defaultCreateApi($container, static::API_CLASS),
             $container->get(EncoderInterface::class)
         );
-
-        return $response;
     }
 
     /**
-     * @param string                 $index
-     * @param string                 $modelRelName
-     * @param string                 $queryValRulesClass
-     * @param ContainerInterface     $container
+     * @param string $index
+     * @param string $modelRelName
+     * @param string $queryValRulesClass
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
-     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -200,7 +205,7 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
         static::assertClassValueDefined(static::API_CLASS);
         static::assertClassValueDefined(static::SCHEMA_CLASS);
 
-        $api     = static::defaultCreateApi($container, static::API_CLASS);
+        $api = static::defaultCreateApi($container, static::API_CLASS);
         $handler = function () use ($api, $index, $modelRelName) {
             return $api->readRelationship($index, $modelRelName);
         };
@@ -218,14 +223,12 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
     }
 
     /**
-     * @param string                 $index
-     * @param string                 $modelRelName
-     * @param string                 $queryValRulesClass
-     * @param ContainerInterface     $container
+     * @param string $index
+     * @param string $modelRelName
+     * @param string $queryValRulesClass
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
-     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
@@ -239,7 +242,7 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
         static::assertClassValueDefined(static::API_CLASS);
         static::assertClassValueDefined(static::SCHEMA_CLASS);
 
-        $api     = static::defaultCreateApi($container, static::API_CLASS);
+        $api = static::defaultCreateApi($container, static::API_CLASS);
         $handler = function () use ($api, $index, $modelRelName) {
             return $api->readRelationship($index, $modelRelName);
         };
@@ -257,13 +260,14 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
     }
 
     /**
-     * @param string                 $parentIndex
-     * @param string                 $jsonRelName
-     * @param string                 $modelRelName
-     * @param ContainerInterface     $container
+     * @param string $parentIndex
+     * @param string $jsonRelName
+     * @param string $modelRelName
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected static function addInRelationship(
         string $parentIndex,
@@ -295,13 +299,14 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
     }
 
     /**
-     * @param string                 $parentIndex
-     * @param string                 $jsonRelName
-     * @param string                 $modelRelName
-     * @param ContainerInterface     $container
+     * @param string $parentIndex
+     * @param string $jsonRelName
+     * @param string $modelRelName
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected static function deleteInRelationship(
         string $parentIndex,
@@ -333,13 +338,14 @@ abstract class JsonApiBaseController implements JsonApiControllerInterface
     }
 
     /**
-     * @param string                 $parentIndex
-     * @param string                 $jsonRelName
-     * @param string                 $modelRelName
-     * @param ContainerInterface     $container
+     * @param string $parentIndex
+     * @param string $jsonRelName
+     * @param string $modelRelName
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     protected static function replaceInRelationship(
         string $parentIndex,

@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Validation;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,32 +17,32 @@ namespace Whoa\Flute\Contracts\Validation;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Validation;
+
 use Whoa\Validation\Contracts\Rules\RuleInterface;
 
 /**
- * @package Whoa\Application
+ * @package Whoa\Flute
  */
 interface JsonApiDataRulesSerializerInterface
 {
     /**
      * Add rules from data rules class.
-     *
      * @param string $rulesClass
-     *
      * @return self
      */
     public function addRulesFromClass(string $rulesClass): self;
 
     /**
      * Add rules manually.
-     *
-     * @param string          $name
-     * @param RuleInterface   $idRule
-     * @param RuleInterface   $typeRule
+     * @param string $name
+     * @param RuleInterface $idRule
+     * @param RuleInterface $typeRule
      * @param RuleInterface[] $attributeRules
      * @param RuleInterface[] $toOneRules
      * @param RuleInterface[] $toManyRules
-     *
      * @return self
      */
     public function addDataRules(
@@ -57,123 +56,106 @@ interface JsonApiDataRulesSerializerInterface
 
     /**
      * Get serialized data.
-     *
      * @return array
      */
     public function getData(): array;
 
     /**
      * @param array $serializedData
-     *
      * @return array
      */
     public static function readBlocks(array $serializedData): array;
 
     /**
      * @param string $name
-     * @param array  $serializedData
-     *
+     * @param array $serializedData
      * @return bool
      */
     public static function hasRules(string $name, array $serializedData): bool;
 
     /**
      * @param string $rulesClass
-     * @param array  $serializedData
-     *
+     * @param array $serializedData
      * @return array
      */
     public static function readRules(string $rulesClass, array $serializedData): array;
 
     /**
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readIdRuleIndexes(array $serializedRules): array;
 
     /**
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readTypeRuleIndexes(array $serializedRules): array;
 
     /**
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readAttributeRulesIndexes(array $serializedRules): array;
 
     /**
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readToOneRulesIndexes(array $serializedRules): array;
 
     /**
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readToManyRulesIndexes(array $serializedRules): array;
 
     /**
      * @param array $ruleIndexes
-     *
      * @return int
      */
     public static function readRuleIndex(array $ruleIndexes): int;
 
     /**
      * @param array $ruleIndexes
-     *
      * @return array
      */
     public static function readRuleStartIndexes(array $ruleIndexes): array;
 
     /**
      * @param array $ruleIndexes
-     *
      * @return array
      */
     public static function readRuleEndIndexes(array $ruleIndexes): array;
 
     /**
      * @param array $arrayRuleIndexes
-     *
      * @return array
      */
     public static function readRulesIndexes(array $arrayRuleIndexes): array;
 
     /**
      * @param array $arrayRuleIndexes
-     *
      * @return array
      */
     public static function readRulesStartIndexes(array $arrayRuleIndexes): array;
 
     /**
      * @param array $arrayRuleIndexes
-     *
      * @return array
      */
     public static function readRulesEndIndexes(array $arrayRuleIndexes): array;
 
     /**
-     * @param array  $arrayRuleIndexes
+     * @param array $arrayRuleIndexes
      * @param string $name
-     *
      * @return array
      */
     public static function readSingleRuleIndexes(array $arrayRuleIndexes, string $name): array;
 
     /**
-     * @param int   $index
+     * @param int $index
      * @param array $blocks
-     *
      * @return bool
      */
     public static function hasRule(int $index, array $blocks): bool;

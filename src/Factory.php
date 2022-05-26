@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute;
 
 use Doctrine\DBAL\Connection;
 use Whoa\Container\Traits\HasContainerTrait;
@@ -41,18 +44,15 @@ use Psr\Container\ContainerInterface;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
  */
 class Factory implements FactoryInterface
 {
     use HasContainerTrait;
 
     /**
-     * @var JsonApiFactoryInterface
+     * @var JsonApiFactoryInterface|null
      */
-    private $jsonApiFactory = null;
+    private ?JsonApiFactoryInterface $jsonApiFactory = null;
 
     /**
      * @param ContainerInterface $container
@@ -87,7 +87,6 @@ class Factory implements FactoryInterface
 
     /**
      * @param mixed $data
-     *
      * @return PaginatedDataInterface
      */
     public function createPaginatedData($data): PaginatedDataInterface
@@ -143,8 +142,6 @@ class Factory implements FactoryInterface
      */
     public function createApi(string $apiClass): CrudInterface
     {
-        $api = new $apiClass($this->getContainer());
-
-        return $api;
+        return new $apiClass($this->getContainer());
     }
 }

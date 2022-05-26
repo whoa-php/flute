@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Validation;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,34 +17,34 @@ namespace Whoa\Flute\Contracts\Validation;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Validation;
+
 use Whoa\Validation\Contracts\Rules\RuleInterface;
 
 /**
- * @package Whoa\Application
+ * @package Whoa\Flute
  */
 interface JsonApiQueryRulesSerializerInterface
 {
     /**
      * Add rules from query rules class.
-     *
      * @param string $rulesClass
-     *
      * @return self
      */
     public function addRulesFromClass(string $rulesClass): self;
 
-    /** @noinspection PhpTooManyParametersInspection
+    /**
      * Add rules manually.
-     *
-     * @param string               $name
-     * @param RuleInterface|null   $identityRule
+     * @param string $name
+     * @param RuleInterface|null $identityRule
      * @param RuleInterface[]|null $filterRules
      * @param RuleInterface[]|null $fieldSetRules
-     * @param RuleInterface|null   $sortsRule
-     * @param RuleInterface|null   $includesRule
-     * @param RuleInterface|null   $pageOffsetRule
-     * @param RuleInterface|null   $pageLimitRule
-     *
+     * @param RuleInterface|null $sortsRule
+     * @param RuleInterface|null $includesRule
+     * @param RuleInterface|null $pageOffsetRule
+     * @param RuleInterface|null $pageLimitRule
      * @return self
      */
     public function addQueryRules(
@@ -61,135 +60,106 @@ interface JsonApiQueryRulesSerializerInterface
 
     /**
      * Get serialized data.
-     *
      * @return array
      */
     public function getData(): array;
 
     /**
      * Reads validation blocks from serialized data.
-     *
      * @param array $serializedData
-     *
      * @return array
      */
     public static function readBlocks(array $serializedData): array;
 
     /**
      * Reads serialized validation rules from serialized data.
-     *
      * @param string $name
-     * @param array  $serializedData
-     *
+     * @param array $serializedData
      * @return bool
      */
     public static function hasRules(string $name, array $serializedData): bool;
 
     /**
      * Reads serialized validation rules from serialized data.
-     *
      * @param string $name
-     * @param array  $serializedData
-     *
+     * @param array $serializedData
      * @return array
      */
     public static function readRules(string $name, array $serializedData): array;
 
     /**
      * Reads serialized identity validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readIdentityRuleIndexes(array $serializedRules): ?array;
 
     /**
      * Reads serialized filter validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readFilterRulesIndexes(array $serializedRules): ?array;
 
     /**
      * Reads serialized field set validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readFieldSetRulesIndexes(array $serializedRules): ?array;
 
     /**
      * Reads serialized sorts validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readSortsRuleIndexes(array $serializedRules): ?array;
 
     /**
      * Reads serialized includes validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readIncludesRuleIndexes(array $serializedRules): ?array;
 
     /**
      * Reads serialized page offset validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readPageOffsetRuleIndexes(array $serializedRules): ?array;
 
     /**
      * Reads serialized page limit validation rule indexes from rules.
-     *
      * @param array $serializedRules
-     *
      * @return array
      */
     public static function readPageLimitRuleIndexes(array $serializedRules): ?array;
 
     /**
      * Read rule indexes (key, index pairs) from serialized rules indexes.
-     *
      * @param array $ruleIndexes
-     *
      * @return array
      */
     public static function readRuleMainIndexes(array $ruleIndexes): ?array;
 
     /**
      * Read first rule index from serialized rules indexes.
-     *
      * @param array $ruleIndexes
-     *
      * @return int
      */
     public static function readRuleMainIndex(array $ruleIndexes): ?int;
 
     /**
      * Read rule start indexes (key, index pairs) from serialized rules indexes.
-     *
      * @param array $ruleIndexes
-     *
      * @return array
      */
     public static function readRuleStartIndexes(array $ruleIndexes): array;
 
     /**
      * Read rule end indexes (key, index pairs) from serialized rules indexes.
-     *
      * @param array $ruleIndexes
-     *
      * @return array
      */
     public static function readRuleEndIndexes(array $ruleIndexes): array;

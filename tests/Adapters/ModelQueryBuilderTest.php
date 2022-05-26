@@ -23,14 +23,20 @@ namespace Whoa\Tests\Flute\Adapters;
 
 use DateTime;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception as DBALDriverException;
 use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\DBAL\Types\Type;
 use Exception;
+use Whoa\Doctrine\Types\DateTimeType;
+use Whoa\Doctrine\Types\DateType;
+use Whoa\Doctrine\Types\UuidType;
 use Whoa\Flute\Adapters\ModelQueryBuilder;
 use Whoa\Flute\Contracts\Http\Query\FilterParameterInterface;
+use Whoa\Flute\Exceptions\InvalidArgumentException;
 use Whoa\Tests\Flute\Data\Models\Board;
 use Whoa\Tests\Flute\Data\Models\Comment;
 use Whoa\Tests\Flute\Data\Models\Emotion;
+use Whoa\Tests\Flute\Data\Models\Model;
 use Whoa\Tests\Flute\Data\Models\Post;
 use Whoa\Tests\Flute\Data\Models\PostExtended;
 use Whoa\Tests\Flute\Data\Models\User;
@@ -47,11 +53,10 @@ class ModelQueryBuilderTest extends TestCase
     /**
      * @var Connection
      */
-    private $connection;
+    private Connection $connection;
 
     /**
      * @inheritdoc
-     *
      * @throws DBALException
      */
     protected function setUp(): void
@@ -60,19 +65,19 @@ class ModelQueryBuilderTest extends TestCase
 
         // If test is run withing the whole test suite then those lines not needed, however
         // if only tests from this file are run then the lines are required.
-        Type::hasType(SystemDateTimeType::NAME) === true ?: Type::addType(SystemDateTimeType::NAME, SystemDateTimeType::class);
-        Type::hasType(SystemDateType::NAME) === true ?: Type::addType(SystemDateType::NAME, SystemDateType::class);
+        Type::hasType(DateTimeType::NAME) === true ?: Type::addType(DateTimeType::NAME, SystemDateTimeType::class);
+        Type::hasType(DateType::NAME) === true ?: Type::addType(DateType::NAME, SystemDateType::class);
 
-        Type::hasType(SystemUuidType::NAME) === true ?: Type::addType(SystemUuidType::NAME, SystemUuidType::class);
+        Type::hasType(UuidType::NAME) === true ?: Type::addType(UuidType::NAME, SystemUuidType::class);
 
         $this->connection = $this->createConnection();
     }
 
     /**
      * Test filtering in BelongsTo relationship.
-     *
      * @throws Exception
      * @throws DBALException
+     * @throws DBALDriverException
      */
     public function testAddBelongsToRelationshipAndFilterWithSort(): void
     {
@@ -83,7 +88,7 @@ class ModelQueryBuilderTest extends TestCase
                 FilterParameterInterface::OPERATION_EQUALS => [1],
             ],
         ];
-        $sorts   = [
+        $sorts = [
             User::FIELD_FIRST_NAME => false,
         ];
         $builder
@@ -107,8 +112,7 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test filtering in BelongsTo relationship.
-     *
-     * @throws Exception
+     * @throws DBALDriverException
      * @throws DBALException
      */
     public function testAddBelongsToRelationshipFilterOnly(): void
@@ -120,7 +124,7 @@ class ModelQueryBuilderTest extends TestCase
                 FilterParameterInterface::OPERATION_EQUALS => [1],
             ],
         ];
-        $sorts   = null;
+        $sorts = null;
         $builder
             ->selectModelColumns()
             ->fromModelTable()
@@ -140,8 +144,7 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test sorting in BelongsTo relationship.
-     *
-     * @throws Exception
+     * @throws DBALDriverException
      * @throws DBALException
      */
     public function testAddBelongsToRelationshipSortOnly(): void
@@ -150,7 +153,7 @@ class ModelQueryBuilderTest extends TestCase
 
         $filters = [
         ];
-        $sorts   = [
+        $sorts = [
             User::FIELD_FIRST_NAME => false,
         ];
         $builder
@@ -173,8 +176,7 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test filtering in HasMany relationship.
-     *
-     * @throws Exception
+     * @throws DBALDriverException
      * @throws DBALException
      */
     public function testAddHasManyRelationshipAndFilter(): void
@@ -183,10 +185,10 @@ class ModelQueryBuilderTest extends TestCase
         $filters = [
             Comment::FIELD_ID => [
                 FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => [1],
-                FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => [2],
+                FilterParameterInterface::OPERATION_LESS_OR_EQUALS => [2],
             ],
         ];
-        $sorts   = [
+        $sorts = [
             Comment::FIELD_TEXT => true,
         ];
 
@@ -212,8 +214,7 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test filtering in HasMany relationship.
-     *
-     * @throws Exception
+     * @throws DBALDriverException
      * @throws DBALException
      */
     public function testAddHasManyRelationshipOrFilter(): void
@@ -222,10 +223,10 @@ class ModelQueryBuilderTest extends TestCase
         $filters = [
             Comment::FIELD_ID => [
                 FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => [1],
-                FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => [2],
+                FilterParameterInterface::OPERATION_LESS_OR_EQUALS => [2],
             ],
         ];
-        $sorts   = [
+        $sorts = [
             Comment::FIELD_TEXT => true,
         ];
 
@@ -233,7 +234,7 @@ class ModelQueryBuilderTest extends TestCase
         $builder
             ->selectModelColumns()
             ->fromModelTable()
-            ->addRelationshipFiltersAndSorts(Post::REL_COMMENTS, $filters, $sorts, ModelQueryBuilder:: OR);
+            ->addRelationshipFiltersAndSorts(Post::REL_COMMENTS, $filters, $sorts, ModelQueryBuilder::OR);
 
         $expected =
             'SELECT "posts1"."id_post", "posts1"."id_board_fk", "posts1"."id_user_fk", "posts1"."id_editor_fk", ' .
@@ -251,8 +252,7 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test filtering in BelongsTo relationship.
-     *
-     * @throws Exception
+     * @throws DBALDriverException
      * @throws DBALException
      */
     public function testAddBelongsToManyRelationshipFilter(): void
@@ -263,9 +263,9 @@ class ModelQueryBuilderTest extends TestCase
                 FilterParameterInterface::OPERATION_EQUALS => [1],
             ],
         ];
-        $sorts   = [
+        $sorts = [
             Emotion::FIELD_NAME => true,
-            Emotion::FIELD_ID   => false,
+            Emotion::FIELD_ID => false,
         ];
 
         // select all comments with emotion ID=1
@@ -295,7 +295,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test builder.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -303,11 +302,11 @@ class ModelQueryBuilderTest extends TestCase
     {
         $builder = $this->createModelQueryBuilder(Board::class);
         $filters = [
-            Board::FIELD_CREATED_AT => [
+            Model::FIELD_CREATED_AT => [
                 FilterParameterInterface::OPERATION_EQUALS => [new DateTime()],
             ],
         ];
-        $sorts   = [
+        $sorts = [
             Board::FIELD_TITLE => true,
         ];
 
@@ -328,7 +327,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test builder.
-     *
      * @throws Exception
      */
     public function testIndex(): void
@@ -348,7 +346,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test builder.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -356,18 +353,18 @@ class ModelQueryBuilderTest extends TestCase
     {
         $filters = [
             Board::FIELD_TITLE => [
-                FilterParameterInterface::OPERATION_EQUALS            => ['aaa'],
-                FilterParameterInterface::OPERATION_NOT_EQUALS        => ['bbb'],
-                FilterParameterInterface::OPERATION_LESS_THAN         => ['ccc'],
-                FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => ['ddd'],
-                FilterParameterInterface::OPERATION_GREATER_THAN      => ['eee'],
+                FilterParameterInterface::OPERATION_EQUALS => ['aaa'],
+                FilterParameterInterface::OPERATION_NOT_EQUALS => ['bbb'],
+                FilterParameterInterface::OPERATION_LESS_THAN => ['ccc'],
+                FilterParameterInterface::OPERATION_LESS_OR_EQUALS => ['ddd'],
+                FilterParameterInterface::OPERATION_GREATER_THAN => ['eee'],
                 FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => ['fff'],
-                FilterParameterInterface::OPERATION_LIKE              => ['ggg'],
-                FilterParameterInterface::OPERATION_NOT_LIKE          => ['hhh'],
-                FilterParameterInterface::OPERATION_IN                => ['iii'],
-                FilterParameterInterface::OPERATION_NOT_IN            => ['jjj', 'kkk'],
-                FilterParameterInterface::OPERATION_IS_NULL           => [],
-                FilterParameterInterface::OPERATION_IS_NOT_NULL       => ['whatever'],
+                FilterParameterInterface::OPERATION_LIKE => ['ggg'],
+                FilterParameterInterface::OPERATION_NOT_LIKE => ['hhh'],
+                FilterParameterInterface::OPERATION_IN => ['iii'],
+                FilterParameterInterface::OPERATION_NOT_IN => ['jjj', 'kkk'],
+                FilterParameterInterface::OPERATION_IS_NULL => [],
+                FilterParameterInterface::OPERATION_IS_NOT_NULL => ['whatever'],
             ],
         ];
 
@@ -397,15 +394,15 @@ class ModelQueryBuilderTest extends TestCase
 
         $this->assertEquals($expected, $builder->getSQL());
         $this->assertEquals([
-            'dcValue1'  => 'aaa',
-            'dcValue2'  => 'bbb',
-            'dcValue3'  => 'ccc',
-            'dcValue4'  => 'ddd',
-            'dcValue5'  => 'eee',
-            'dcValue6'  => 'fff',
-            'dcValue7'  => 'ggg',
-            'dcValue8'  => 'hhh',
-            'dcValue9'  => 'iii',
+            'dcValue1' => 'aaa',
+            'dcValue2' => 'bbb',
+            'dcValue3' => 'ccc',
+            'dcValue4' => 'ddd',
+            'dcValue5' => 'eee',
+            'dcValue6' => 'fff',
+            'dcValue7' => 'ggg',
+            'dcValue8' => 'hhh',
+            'dcValue9' => 'iii',
             'dcValue10' => 'jjj',
             'dcValue11' => 'kkk',
         ], $builder->getParameters());
@@ -413,7 +410,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test builder.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -421,7 +417,7 @@ class ModelQueryBuilderTest extends TestCase
     {
         $filters = [
             Board::FIELD_TITLE => [
-                FilterParameterInterface::OPERATION_EQUALS         => ['aaa'],
+                FilterParameterInterface::OPERATION_EQUALS => ['aaa'],
                 FilterParameterInterface::OPERATION_LESS_OR_EQUALS => ['bbb'],
             ],
         ];
@@ -447,17 +443,16 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test builder.
-     *
      * @throws DBALException
      */
     public function testReadWithInvalidParam(): void
     {
-        $this->expectException(\Whoa\Flute\Exceptions\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $builder = $this->createModelQueryBuilder(Board::class);
 
         $emptyArguments = [];
-        $filters        = [
+        $filters = [
             Board::FIELD_ID => [
                 FilterParameterInterface::OPERATION_EQUALS => $emptyArguments,
             ],
@@ -470,7 +465,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test update with OR condition.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -479,7 +473,7 @@ class ModelQueryBuilderTest extends TestCase
         $filters = [
             Board::FIELD_ID => [
                 FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => [1],
-                FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => [5],
+                FilterParameterInterface::OPERATION_LESS_OR_EQUALS => [5],
             ],
         ];
 
@@ -504,7 +498,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test building quoted column names.
-     *
      * @throws Exception
      */
     public function testBuildingQuotedColumns(): void
@@ -517,7 +510,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * Test reading models with extra properties.
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -533,7 +525,7 @@ class ModelQueryBuilderTest extends TestCase
             'SELECT "posts_extended1"."id_post", "posts_extended1"."id_board_fk", "posts_extended1"."id_user_fk", ' .
             '"posts_extended1"."id_editor_fk", "posts_extended1"."title", "posts_extended1"."text", ' .
             '"posts_extended1"."created_at", "posts_extended1"."updated_at", "posts_extended1"."deleted_at", ' .
-            '(SELECT first_name FROM users WHERE id_user = "posts_extended1"."id_user_fk") AS user_name ' .
+            '(SELECT first_name FROM users WHERE id_user = "posts_extended1"."id_user_fk") AS `user_name` ' .
             'FROM "posts_extended" "posts_extended1"';
         $this->assertEquals($expected, $builder->getSQL());
 
@@ -542,7 +534,6 @@ class ModelQueryBuilderTest extends TestCase
 
     /**
      * @param string $modelClass
-     *
      * @return ModelQueryBuilder
      */
     private function createModelQueryBuilder(string $modelClass): ModelQueryBuilder

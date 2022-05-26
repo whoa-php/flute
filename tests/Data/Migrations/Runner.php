@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Migrations;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Data\Migrations;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Migrations;
+
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 
 /**
@@ -28,7 +31,7 @@ class Runner
     /**
      * @var string[]
      */
-    private $migrations = [
+    private array $migrations = [
         BoardsMigration::class,
         RolesMigration::class,
         EmotionsMigration::class,
@@ -42,7 +45,6 @@ class Runner
 
     /**
      * @param AbstractSchemaManager $schemaManager
-     *
      * @return void
      */
     public function migrate(AbstractSchemaManager $schemaManager)
@@ -56,7 +58,6 @@ class Runner
 
     /**
      * @param AbstractSchemaManager $schemaManager
-     *
      * @return void
      */
     public function rollback(AbstractSchemaManager $schemaManager)

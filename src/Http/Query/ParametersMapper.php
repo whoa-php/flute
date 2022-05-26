@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http\Query;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute\Http\Query;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http\Query;
 
 use Generator;
 use Whoa\Flute\Contracts\Api\CrudInterface;
@@ -32,6 +35,7 @@ use Whoa\Flute\Exceptions\LogicException;
 use Neomerx\JsonApi\Contracts\Http\Query\BaseQueryParserInterface;
 use Neomerx\JsonApi\Contracts\Schema\ErrorInterface;
 use Neomerx\JsonApi\Schema\Error;
+
 use function array_key_exists;
 use function assert;
 use function count;
@@ -43,9 +47,6 @@ use function is_string;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class ParametersMapper implements ParametersMapperInterface
 {
@@ -71,43 +72,43 @@ class ParametersMapper implements ParametersMapperInterface
     private const REL_SORT_INDEX = 1;
 
     /**
-     * @var SchemaInterface
+     * @var SchemaInterface|null
      */
-    private $rootSchema;
+    private ?SchemaInterface $rootSchema = null;
 
     /**
      * @var JsonSchemasInterface
      */
-    private $jsonSchemas;
+    private JsonSchemasInterface $jsonSchemas;
 
     /**
      * @var array|null
      */
-    private $messages;
+    private ?array $messages;
 
     /**
      * @var iterable
      */
-    private $filters;
+    private iterable $filters;
 
     /**
      * @var iterable
      */
-    private $sorts;
+    private iterable $sorts;
 
     /**
      * @var iterable
      */
-    private $includes;
+    private iterable $includes;
 
     /**
      * @param JsonSchemasInterface $jsonSchemas
-     * @param array|null           $messages
+     * @param array|null $messages
      */
     public function __construct(JsonSchemasInterface $jsonSchemas, array $messages = null)
     {
         $this->jsonSchemas = $jsonSchemas;
-        $this->messages    = $messages;
+        $this->messages = $messages;
 
         $this->withoutFilters()->withoutSorts()->withoutIncludes();
     }
@@ -223,13 +224,11 @@ class ParametersMapper implements ParametersMapperInterface
             /** @var AttributeInterface $attribute */
             list ($relationship, $attribute) = $this->mapToRelationshipAndAttribute($field);
 
-            $filter = new FilterParameter(
+            yield new FilterParameter(
                 $attribute,
                 $this->parseOperationsAndArguments(static::MSG_PARAM_FILTER, $operationsAndArgs),
                 $relationship
             );
-
-            yield $filter;
         }
     }
 
@@ -245,9 +244,7 @@ class ParametersMapper implements ParametersMapperInterface
             /** @var AttributeInterface $attribute */
             list ($relationship, $attribute) = $this->mapToRelationshipAndAttribute($field);
 
-            $sort = new SortParameter($attribute, $isAsc, $relationship);
-
-            yield $sort;
+            yield new SortParameter($attribute, $isAsc, $relationship);
         }
     }
 
@@ -256,16 +253,14 @@ class ParametersMapper implements ParametersMapperInterface
      */
     public function getMappedIncludes(): iterable
     {
-        $fromSchema        = $this->getRootSchema();
-        $getMappedRelLinks = function (iterable $links) use ($fromSchema) : iterable {
+        $fromSchema = $this->getRootSchema();
+        $getMappedRelLinks = function (iterable $links) use ($fromSchema): iterable {
             foreach ($links as $link) {
                 assert(is_string($link));
                 $fromSchemaClass = get_class($fromSchema);
                 if ($this->getJsonSchemas()->hasRelationshipSchema($fromSchemaClass, $link)) {
-                    $toSchema     = $this->getJsonSchemas()->getRelationshipSchema($fromSchemaClass, $link);
-                    $relationship = new Relationship($link, $fromSchema, $toSchema);
-
-                    yield $relationship;
+                    $toSchema = $this->getJsonSchemas()->getRelationshipSchema($fromSchemaClass, $link);
+                    yield new Relationship($link, $fromSchema, $toSchema);
 
                     $fromSchema = $toSchema;
                     continue;
@@ -283,10 +278,6 @@ class ParametersMapper implements ParametersMapperInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function applyQueryParameters(
         JsonApiQueryParserInterface $parser,
@@ -313,8 +304,8 @@ class ParametersMapper implements ParametersMapperInterface
                 yield $relationship->getNameInModel();
             }
         };
-        $mappedIncludes      = $this->getMappedIncludes();
-        $getIncludes         = function () use ($mappedIncludes, $includeAsModelNames) : iterable {
+        $mappedIncludes = $this->getMappedIncludes();
+        $getIncludes = function () use ($mappedIncludes, $includeAsModelNames): iterable {
             foreach ($mappedIncludes as $relationships) {
                 yield $includeAsModelNames($relationships);
             }
@@ -332,7 +323,7 @@ class ParametersMapper implements ParametersMapperInterface
             ->withIncludes($parser->getIncludes());
 
         $attributeFilters = [];
-        $attributeSorts   = [];
+        $attributeSorts = [];
 
         // As relationship filters and sorts should be applied together (in one SQL JOIN)
         // we have to iterate through all filters and merge related to the same relationship.
@@ -380,7 +371,6 @@ class ParametersMapper implements ParametersMapperInterface
 
     /**
      * @param string $field
-     *
      * @return array
      */
     private function mapToRelationshipAndAttribute(string $field): array
@@ -388,21 +378,21 @@ class ParametersMapper implements ParametersMapperInterface
         $rootSchema = $this->getRootSchema();
         if ($rootSchema->hasAttributeMapping($field) === true) {
             $relationship = null;
-            $schema       = $rootSchema;
-            $attribute    = new Attribute($field, $schema);
+            $schema = $rootSchema;
+            $attribute = new Attribute($field, $schema);
 
             return [$relationship, $attribute];
         } elseif ($rootSchema->hasRelationshipMapping($field) === true) {
-            $fromSchema   = $rootSchema;
-            $toSchema     = $this->getJsonSchemas()->getRelationshipSchema(get_class($fromSchema), $field);
+            $fromSchema = $rootSchema;
+            $toSchema = $this->getJsonSchemas()->getRelationshipSchema(get_class($fromSchema), $field);
             $relationship = new Relationship($field, $fromSchema, $toSchema);
-            $attribute    = new Attribute($toSchema::RESOURCE_ID, $toSchema);
+            $attribute = new Attribute($toSchema::RESOURCE_ID, $toSchema);
 
             return [$relationship, $attribute];
         } elseif (count($mightBeRelAndAttr = explode('.', $field, 2)) === 2) {
             // Last chance. It could be a dot ('.') separated relationship with an attribute.
 
-            $mightBeRel  = $mightBeRelAndAttr[0];
+            $mightBeRel = $mightBeRelAndAttr[0];
             $mightBeAttr = $mightBeRelAndAttr[1];
 
             $fromSchema = $rootSchema;
@@ -410,7 +400,7 @@ class ParametersMapper implements ParametersMapperInterface
                 $toSchema = $this->getJsonSchemas()->getRelationshipSchema(get_class($fromSchema), $mightBeRel);
                 if ($toSchema::hasAttributeMapping($mightBeAttr) === true) {
                     $relationship = new Relationship($mightBeRel, $fromSchema, $toSchema);
-                    $attribute    = new Attribute($mightBeAttr, $toSchema);
+                    $attribute = new Attribute($mightBeAttr, $toSchema);
 
                     return [$relationship, $attribute];
                 }
@@ -422,12 +412,9 @@ class ParametersMapper implements ParametersMapperInterface
     }
 
     /**
-     * @param string   $parameterName
+     * @param string $parameterName
      * @param iterable $value
-     *
      * @return iterable
-     *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     private function parseOperationsAndArguments(string $parameterName, iterable $value): iterable
     {
@@ -542,21 +529,17 @@ class ParametersMapper implements ParametersMapperInterface
     /**
      * @param string $name
      * @param string $title
-     *
      * @return ErrorInterface
      */
     private function createQueryError(string $name, string $title): ErrorInterface
     {
-        $title  = $this->getMessage($title);
+        $title = $this->getMessage($title);
         $source = [ErrorInterface::SOURCE_PARAMETER => $name];
-        $error  = new Error(null, null, null, null, null, $title, null, $source);
-
-        return $error;
+        return new Error(null, null, null, null, null, $title, null, $source);
     }
 
     /**
      * @param string $message
-     *
      * @return string
      */
     private function getMessage(string $message): string

@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Http;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http;
+
 use Neomerx\JsonApi\Contracts\Encoder\EncoderInterface;
 use Neomerx\JsonApi\Contracts\Http\Headers\MediaTypeInterface;
 use Neomerx\JsonApi\Http\BaseResponses;
@@ -30,22 +33,22 @@ class Responses extends BaseResponses
     /**
      * @var EncoderInterface
      */
-    private $encoder;
+    private EncoderInterface $encoder;
 
     /**
      * @var MediaTypeInterface
      */
-    private $outputMediaType;
+    private MediaTypeInterface $outputMediaType;
 
     /**
      * @param MediaTypeInterface $outputMediaType
-     * @param EncoderInterface   $encoder
+     * @param EncoderInterface $encoder
      */
     public function __construct(
         MediaTypeInterface $outputMediaType,
         EncoderInterface $encoder
     ) {
-        $this->encoder         = $encoder;
+        $this->encoder = $encoder;
         $this->outputMediaType = $outputMediaType;
     }
 

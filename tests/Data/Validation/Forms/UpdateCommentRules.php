@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Validation\Forms;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Data\Validation\Forms;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Validation\Forms;
 
 use Whoa\Flute\Contracts\Validation\FormRulesInterface;
 use Whoa\Tests\Flute\Data\Models\Comment;
@@ -35,7 +38,7 @@ class UpdateCommentRules implements FormRulesInterface
     public static function getAttributeRules(): array
     {
         return [
-            Comment::REL_POST     => r::readablePost(),
+            Comment::REL_POST => r::readablePost(),
             Comment::REL_EMOTIONS => r::readableEmotions(),
         ];
     }

@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,8 @@ declare (strict_types=1);
 
 namespace Whoa\Flute\Validation\JsonApi\Rules;
 
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Whoa\Common\Reflection\ClassIsTrait;
 use Whoa\Flute\Contracts\Api\CrudInterface;
 use Whoa\Flute\Contracts\FactoryInterface;
@@ -28,6 +30,7 @@ use Whoa\Flute\Contracts\Validation\ErrorCodes;
 use Whoa\Flute\L10n\Messages;
 use Whoa\Validation\Contracts\Execution\ContextInterface;
 use Whoa\Validation\Rules\ExecuteRule;
+
 use function assert;
 use function count;
 use function is_array;
@@ -40,22 +43,24 @@ final class AreReadableViaApiRule extends ExecuteRule
     use ClassIsTrait;
 
     /** @var int Property key */
-    const PROPERTY_API_CLASS = self::PROPERTY_LAST + 1;
+    public const PROPERTY_API_CLASS = self::PROPERTY_LAST + 1;
 
     /**
      * @param string $apiClass
      */
     public function __construct(string $apiClass)
     {
-        assert(static::classImplements($apiClass, CrudInterface::class));
+        assert(AreReadableViaApiRule::classImplements($apiClass, CrudInterface::class));
 
         parent::__construct([
-            static::PROPERTY_API_CLASS => $apiClass,
+            AreReadableViaApiRule::PROPERTY_API_CLASS => $apiClass,
         ]);
     }
 
     /**
      * @inheritDoc
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function execute($value, ContextInterface $context, $extras = null): array
     {
@@ -70,7 +75,6 @@ final class AreReadableViaApiRule extends ExecuteRule
             /** @var FactoryInterface $apiFactory */
             $apiFactory = $context->getContainer()->get(FactoryInterface::class);
 
-            /** @var CrudInterface $api */
             $api = $apiFactory->createApi($apiClass);
 
             $readIndexes = $api->withIndexesFilter($value)->indexIdentities();
@@ -79,8 +83,8 @@ final class AreReadableViaApiRule extends ExecuteRule
         }
 
         return $result === true ?
-            static::createSuccessReply($value) :
-            static::createErrorReply(
+            AreReadableViaApiRule::createSuccessReply($value) :
+            AreReadableViaApiRule::createErrorReply(
                 $context,
                 $value,
                 ErrorCodes::EXIST_IN_DATABASE_MULTIPLE,

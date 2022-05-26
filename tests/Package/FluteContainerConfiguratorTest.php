@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Package;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +17,15 @@ namespace Whoa\Tests\Flute\Package;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Package;
+
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DBALException;
-use Exception;
+use Doctrine\DBAL\Exception as DBALException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use ReflectionException;
 use Whoa\Container\Container;
 use Whoa\Contracts\Application\ApplicationConfigurationInterface;
 use Whoa\Contracts\Application\CacheSettingsProviderInterface;
@@ -53,24 +58,25 @@ class FluteContainerConfiguratorTest extends TestCase
 {
     /**
      * Test configurator.
-     *
      * @throws DBALException
-     * @throws Exception
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws ReflectionException
      */
     public function testProvider(): void
     {
         $container = new Container();
 
-        $appConfig                                        = [
-            ApplicationConfigurationInterface::KEY_IS_LOG_ENABLED         => true,
-            ApplicationConfigurationInterface::KEY_IS_DEBUG               => true,
-            ApplicationConfigurationInterface::KEY_ROUTES_FOLDER          =>
+        $appConfig = [
+            ApplicationConfigurationInterface::KEY_IS_LOG_ENABLED => true,
+            ApplicationConfigurationInterface::KEY_IS_DEBUG => true,
+            ApplicationConfigurationInterface::KEY_ROUTES_FOLDER =>
                 implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Data', 'Http']),
             ApplicationConfigurationInterface::KEY_WEB_CONTROLLERS_FOLDER =>
                 implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Data', 'Http']),
         ];
-        [$modelToSchemaMap,                 ]             = $this->getSchemaMap();
-        $cacheSettingsProvider                            = new CacheSettingsProvider(
+        [$modelToSchemaMap,] = $this->getSchemaMap();
+        $cacheSettingsProvider = new CacheSettingsProvider(
             $appConfig,
             [
                 FluteSettings::class =>
@@ -83,11 +89,11 @@ class FluteContainerConfiguratorTest extends TestCase
             ]
         );
         $container[CacheSettingsProviderInterface::class] = $cacheSettingsProvider;
-        $container[SettingsProviderInterface::class]      = $cacheSettingsProvider;
+        $container[SettingsProviderInterface::class] = $cacheSettingsProvider;
 
-        $container[LoggerInterface::class]           = new NullLogger();
-        $container[ModelSchemaInfoInterface::class]  = $this->getModelSchemas();
-        $container[Connection::class]                = $this->createConnection();
+        $container[LoggerInterface::class] = new NullLogger();
+        $container[ModelSchemaInfoInterface::class] = $this->getModelSchemas();
+        $container[Connection::class] = $this->createConnection();
         $container[FormatterFactoryInterface::class] = new FormatterFactory();
 
         FluteContainerConfigurator::configureContainer($container);

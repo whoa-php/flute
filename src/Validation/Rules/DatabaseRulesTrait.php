@@ -1,9 +1,8 @@
-<?php declare (strict_types=1);
-
-namespace Whoa\Flute\Validation\Rules;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Validation\Rules;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\Rules;
+
 use Whoa\Flute\Validation\JsonApi\Rules\ExistInDbTableMultipleWithDoctrineRule;
 use Whoa\Flute\Validation\JsonApi\Rules\ExistInDbTableSingleWithDoctrineRule;
 use Whoa\Flute\Validation\JsonApi\Rules\UniqueInDbTableSingleWithDoctrineRule;
@@ -30,10 +33,9 @@ use Whoa\Validation\Rules\Generic\AndOperator;
 trait DatabaseRulesTrait
 {
     /**
-     * @param string             $tableName
-     * @param string             $primaryName
+     * @param string $tableName
+     * @param string $primaryName
      * @param RuleInterface|null $next
-     *
      * @return RuleInterface
      */
     public static function exists(string $tableName, string $primaryName, RuleInterface $next = null): RuleInterface
@@ -44,10 +46,9 @@ trait DatabaseRulesTrait
     }
 
     /**
-     * @param string             $tableName
-     * @param string             $primaryName
+     * @param string $tableName
+     * @param string $primaryName
      * @param RuleInterface|null $next
-     *
      * @return RuleInterface
      */
     public static function existAll(string $tableName, string $primaryName, RuleInterface $next = null): RuleInterface
@@ -58,11 +59,10 @@ trait DatabaseRulesTrait
     }
 
     /**
-     * @param string             $tableName
-     * @param string             $primaryName
+     * @param string $tableName
+     * @param string $primaryName
      * @param RuleInterface|null $next
-     * @param string|null        $primaryKey
-     *
+     * @param string|null $primaryKey
      * @return RuleInterface
      */
     public static function unique(
@@ -70,8 +70,7 @@ trait DatabaseRulesTrait
         string $primaryName,
         ?string $primaryKey = null,
         RuleInterface $next = null
-    ): RuleInterface
-    {
+    ): RuleInterface {
         $primary = new UniqueInDbTableSingleWithDoctrineRule($tableName, $primaryName, $primaryKey);
 
         return $next === null ? $primary : new AndOperator($primary, $next);

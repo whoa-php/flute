@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\Form\Execution;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +17,20 @@ namespace Whoa\Flute\Validation\Form\Execution;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\Form\Execution;
+
 use Whoa\Common\Reflection\ClassIsTrait;
 use Whoa\Flute\Contracts\Validation\FormRulesInterface;
 use Whoa\Flute\Contracts\Validation\FormRulesSerializerInterface;
 use Whoa\Flute\Validation\Serialize\RulesSerializer;
+
 use function array_key_exists;
 use function assert;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class FormRulesSerializer extends RulesSerializer implements FormRulesSerializerInterface
 {
@@ -37,7 +39,7 @@ class FormRulesSerializer extends RulesSerializer implements FormRulesSerializer
     /**
      * @var array
      */
-    private $serializedRules = [];
+    private array $serializedRules = [];
 
     /** Serialized indexes key */
     protected const SERIALIZED_RULES = 0;
@@ -78,7 +80,7 @@ class FormRulesSerializer extends RulesSerializer implements FormRulesSerializer
     public function getData(): array
     {
         return [
-            static::SERIALIZED_RULES  => $this->serializedRules,
+            static::SERIALIZED_RULES => $this->serializedRules,
             static::SERIALIZED_BLOCKS => $this->getBlocks(),
         ];
     }
@@ -96,7 +98,7 @@ class FormRulesSerializer extends RulesSerializer implements FormRulesSerializer
      */
     public static function hasRules(string $name, array $serializedData): bool
     {
-        // the value could be null so we have to check by key existence.
+        // the value could be null, so we have to check by key existence.
         return
             array_key_exists(static::SERIALIZED_RULES, $serializedData) === true &&
             array_key_exists($name, $serializedData[static::SERIALIZED_RULES]);

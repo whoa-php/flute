@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Encoder;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Encoder;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Encoder;
+
 use Closure;
 use Whoa\Flute\Contracts\Encoder\EncoderInterface;
 use Whoa\Flute\Contracts\Models\PaginatedDataInterface;
@@ -25,6 +28,7 @@ use Whoa\Flute\Contracts\Validation\JsonApiQueryParserInterface;
 use Neomerx\JsonApi\Contracts\Http\Query\BaseQueryParserInterface;
 use Neomerx\JsonApi\Contracts\Schema\DocumentInterface;
 use Psr\Http\Message\UriInterface;
+
 use function array_merge;
 use function assert;
 use function http_build_query;
@@ -38,7 +42,7 @@ class Encoder extends \Neomerx\JsonApi\Encoder\Encoder implements EncoderInterfa
     /**
      * @var UriInterface
      */
-    private $originalUri;
+    private UriInterface $originalUri;
 
     /**
      * @inheritdoc
@@ -80,25 +84,20 @@ class Encoder extends \Neomerx\JsonApi\Encoder\Encoder implements EncoderInterfa
 
     /**
      * @param mixed $data
-     *
      * @return mixed
      */
     private function handleRelationshipStorageAndPagingData($data)
     {
         if ($data instanceof PaginatedDataInterface) {
-            /** @var PaginatedDataInterface $data */
             $this->addPagingLinksIfNeeded($data);
             $data = $data->getData();
         }
-
-        /** @var mixed $data */
 
         return $data;
     }
 
     /**
      * @param PaginatedDataInterface $data
-     *
      * @return void
      */
     private function addPagingLinksIfNeeded(PaginatedDataInterface $data): void
@@ -107,7 +106,7 @@ class Encoder extends \Neomerx\JsonApi\Encoder\Encoder implements EncoderInterfa
             (0 < $data->getOffset() || $data->hasMoreItems() === true) &&
             $this->getOriginalUri() !== null
         ) {
-            $links       = [];
+            $links = [];
             $linkClosure = $this->createLinkClosure($data->getLimit());
 
             $prev = DocumentInterface::KEYWORD_PREV;
@@ -121,7 +120,6 @@ class Encoder extends \Neomerx\JsonApi\Encoder\Encoder implements EncoderInterfa
 
     /**
      * @param int $pageSize
-     *
      * @return Closure
      */
     private function createLinkClosure(int $pageSize): Closure
@@ -134,14 +132,12 @@ class Encoder extends \Neomerx\JsonApi\Encoder\Encoder implements EncoderInterfa
             $paramsWithPaging = array_merge($queryParams, [
                 BaseQueryParserInterface::PARAM_PAGE => [
                     JsonApiQueryParserInterface::PARAM_PAGING_OFFSET => $offset,
-                    JsonApiQueryParserInterface::PARAM_PAGING_LIMIT  => $pageSize,
+                    JsonApiQueryParserInterface::PARAM_PAGING_LIMIT => $pageSize,
                 ],
             ]);
-            $newUri  = $this->getOriginalUri()->withQuery(http_build_query($paramsWithPaging));
+            $newUri = $this->getOriginalUri()->withQuery(http_build_query($paramsWithPaging));
             $fullUrl = (string)$newUri;
-            $link    = $this->getFactory()->createLink(false, $fullUrl, false);
-
-            return $link;
+            return $this->getFactory()->createLink(false, $fullUrl, false);
         };
     }
 }

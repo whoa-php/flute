@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Api;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Data\Api;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Api;
+
 use Whoa\Flute\Adapters\ModelQueryBuilder;
 use Whoa\Flute\Api\Crud;
 use Whoa\Tests\Flute\Data\Models\Model;
@@ -29,7 +32,7 @@ use Psr\Container\ContainerInterface;
 abstract class AppCrud extends Crud
 {
     /** @var string|null Model class */
-    const MODEL_CLASS = null;
+    public const MODEL_CLASS = null;
 
     /**
      * @inheritdoc
@@ -66,8 +69,10 @@ abstract class AppCrud extends Crud
     /**
      * @inheritdoc
      */
-    protected function builderSaveRelationshipOnCreate($relationshipName, ModelQueryBuilder $builder): ModelQueryBuilder
-    {
+    protected function builderSaveRelationshipOnCreate(
+        string $relationshipName,
+        ModelQueryBuilder $builder
+    ): ModelQueryBuilder {
         $builder = parent::builderSaveRelationshipOnCreate($relationshipName, $builder);
 
         $builder->setValue(Model::FIELD_CREATED_AT, $builder->createNamedParameter($this->now()));
@@ -78,8 +83,10 @@ abstract class AppCrud extends Crud
     /**
      * @inheritdoc
      */
-    protected function builderSaveRelationshipOnUpdate($relationshipName, ModelQueryBuilder $builder): ModelQueryBuilder
-    {
+    protected function builderSaveRelationshipOnUpdate(
+        string $relationshipName,
+        ModelQueryBuilder $builder
+    ): ModelQueryBuilder {
         $builder = parent::builderSaveRelationshipOnUpdate($relationshipName, $builder);
 
         $builder->setValue(Model::FIELD_CREATED_AT, $builder->createNamedParameter($this->now()));
@@ -91,7 +98,7 @@ abstract class AppCrud extends Crud
      * @inheritdoc
      */
     protected function builderOnCreateInBelongsToManyRelationship(
-        $relationshipName,
+        string $relationshipName,
         ModelQueryBuilder $builder
     ): ModelQueryBuilder {
         $builder = parent::builderOnCreateInBelongsToManyRelationship($relationshipName, $builder);

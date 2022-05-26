@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,12 +36,11 @@ class JsonApiErrorCollectionTest extends TestCase
 {
     /**
      * Test adding errors.
-     *
      * @throws Exception
      */
     public function testAddIdAndTypeErrors(): void
     {
-        $formatter  = (new FormatterFactory())->createFormatter(Messages::NAMESPACE_NAME);
+        $formatter = (new FormatterFactory())->createFormatter(Messages::NAMESPACE_NAME);
         $collection = new JsonApiErrorCollection($formatter);
 
         $this->assertCount(0, $collection);

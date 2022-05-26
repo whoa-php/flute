@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\JsonApi\Rules;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +17,15 @@ namespace Whoa\Flute\Validation\JsonApi\Rules;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\JsonApi\Rules;
+
 use Whoa\Flute\Contracts\Validation\JsonApiQueryRulesInterface;
 use Whoa\Flute\Package\FluteSettings;
 use Whoa\Validation\Contracts\Rules\RuleInterface;
 use Whoa\Validation\Rules as r;
+
 use function assert;
 
 /**
@@ -31,8 +35,6 @@ class DefaultQueryValidationRules implements JsonApiQueryRulesInterface
 {
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function getIdentityRule(): ?RuleInterface
     {
@@ -57,8 +59,6 @@ class DefaultQueryValidationRules implements JsonApiQueryRulesInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function getSortsRule(): ?RuleInterface
     {
@@ -67,8 +67,6 @@ class DefaultQueryValidationRules implements JsonApiQueryRulesInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function getIncludesRule(): ?RuleInterface
     {
@@ -77,8 +75,6 @@ class DefaultQueryValidationRules implements JsonApiQueryRulesInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function getPageOffsetRule(): ?RuleInterface
     {
@@ -92,8 +88,6 @@ class DefaultQueryValidationRules implements JsonApiQueryRulesInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function getPageLimitRule(): ?RuleInterface
     {
@@ -106,10 +100,7 @@ class DefaultQueryValidationRules implements JsonApiQueryRulesInterface
     /**
      * @param int $defaultSize
      * @param int $maxSize
-     *
      * @return RuleInterface
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public static function getPageLimitRuleForDefaultAndMaxSizes(int $defaultSize, int $maxSize): RuleInterface
     {

@@ -22,10 +22,15 @@ declare (strict_types=1);
 namespace Whoa\Flute\Validation\JsonApi\Rules;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception;
+use Doctrine\DBAL\Exception as DBALException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Whoa\Flute\Contracts\Validation\ErrorCodes;
 use Whoa\Flute\L10n\Messages;
 use Whoa\Validation\Contracts\Execution\ContextInterface;
 use Whoa\Validation\Rules\ExecuteRule;
+
 use function is_scalar;
 
 /**
@@ -34,32 +39,38 @@ use function is_scalar;
 final class UniqueInDbTableSingleWithDoctrineRule extends ExecuteRule
 {
     /** @var int Property key */
-    const PROPERTY_TABLE_NAME = self::PROPERTY_LAST + 1;
+    public const PROPERTY_TABLE_NAME = self::PROPERTY_LAST + 1;
 
     /** @var int Property key */
-    const PROPERTY_PRIMARY_NAME = self::PROPERTY_TABLE_NAME + 1;
+    public const PROPERTY_PRIMARY_NAME = self::PROPERTY_TABLE_NAME + 1;
 
     /** @var int Property key */
-    const PROPERTY_PRIMARY_KEY = self::PROPERTY_PRIMARY_NAME + 1;
+    public const PROPERTY_PRIMARY_KEY = self::PROPERTY_PRIMARY_NAME + 1;
 
     /**
-     * @param string      $tableName
-     * @param string      $primaryName
+     * @param string $tableName
+     * @param string $primaryName
      * @param string|null $primaryKey
      */
     public function __construct(string $tableName, string $primaryName, ?string $primaryKey = null)
     {
         parent::__construct([
-            static::PROPERTY_TABLE_NAME   => $tableName,
-            static::PROPERTY_PRIMARY_NAME => $primaryName,
-            static::PROPERTY_PRIMARY_KEY  => $primaryKey,
+            UniqueInDbTableSingleWithDoctrineRule::PROPERTY_TABLE_NAME => $tableName,
+            UniqueInDbTableSingleWithDoctrineRule::PROPERTY_PRIMARY_NAME => $primaryName,
+            UniqueInDbTableSingleWithDoctrineRule::PROPERTY_PRIMARY_KEY => $primaryKey,
         ]);
     }
 
     /**
      * @inheritDoc
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @param $value
+     * @param ContextInterface $context
+     * @param null $extras
+     * @return array
+     * @throws Exception
+     * @throws DBALException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function execute($value, ContextInterface $context, $extras = null): array
     {
@@ -67,27 +78,33 @@ final class UniqueInDbTableSingleWithDoctrineRule extends ExecuteRule
 
         if (is_scalar($value) === true) {
             /** @var Connection $connection */
-            $connection  = $context->getContainer()->get(Connection::class);
-            $builder     = $connection->createQueryBuilder();
-            $tableName   = $context->getProperties()->getProperty(static::PROPERTY_TABLE_NAME);
-            $primaryName = $context->getProperties()->getProperty(static::PROPERTY_PRIMARY_NAME);
-            $primaryKey  = $context->getProperties()->getProperty(static::PROPERTY_PRIMARY_KEY);
-            $columns     = $primaryKey === null ? "`{$primaryName}`" : "`{$primaryKey}`, `{$primaryName}`";
-            $statement   = $builder
+            $connection = $context->getContainer()->get(Connection::class);
+            $builder = $connection->createQueryBuilder();
+            $tableName = $context->getProperties()->getProperty(
+                UniqueInDbTableSingleWithDoctrineRule::PROPERTY_TABLE_NAME
+            );
+            $primaryName = $context->getProperties()->getProperty(
+                UniqueInDbTableSingleWithDoctrineRule::PROPERTY_PRIMARY_NAME
+            );
+            $primaryKey = $context->getProperties()->getProperty(
+                UniqueInDbTableSingleWithDoctrineRule::PROPERTY_PRIMARY_KEY
+            );
+            $columns = $primaryKey === null ? "`{$primaryName}`" : "`{$primaryKey}`, `{$primaryName}`";
+            $statement = $builder
                 ->select($columns)
                 ->from($tableName)
                 ->where($builder->expr()->eq($primaryName, $builder->createPositionalParameter($value)))
                 ->setMaxResults(1);
 
             $fetched = $statement->execute()->fetchOne();
-            $found   = isset($primaryKeyName) ?
+            $found = isset($primaryKeyName) ?
                 $fetched !== false && (int)$fetched[$primaryKey] !== (int)$extras :
                 $fetched !== false;
         }
 
         return $found == false ?
-            static::createSuccessReply($value) :
-            static::createErrorReply(
+            UniqueInDbTableSingleWithDoctrineRule::createSuccessReply($value) :
+            UniqueInDbTableSingleWithDoctrineRule::createErrorReply(
                 $context,
                 $value,
                 ErrorCodes::UNIQUE_IN_DATABASE_SINGLE,

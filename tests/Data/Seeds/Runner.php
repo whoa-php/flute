@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,7 @@ class Runner
 {
     /**
      * @param Connection $connection
-     *
      * @return void
-     *
      * @throws DBALException
      */
     public function run(Connection $connection)
@@ -74,27 +72,27 @@ class Runner
         $allRoles = $this->readAll($connection, Role::TABLE_NAME);
         $this->seedTable($connection, 5, User::TABLE_NAME, function () use ($faker, $allRoles) {
             return [
-                User::FIELD_ID_ROLE       => $faker->randomElement($allRoles)[Role::FIELD_ID],
-                User::FIELD_TITLE         => $faker->title,
-                User::FIELD_FIRST_NAME    => $faker->firstName,
-                User::FIELD_LAST_NAME     => $faker->lastName,
-                User::FIELD_LANGUAGE      => $faker->languageCode,
-                User::FIELD_EMAIL         => $faker->email,
-                User::FIELD_IS_ACTIVE     => $faker->boolean,
+                User::FIELD_ID_ROLE => $faker->randomElement($allRoles)[Role::FIELD_ID],
+                User::FIELD_TITLE => $faker->title,
+                User::FIELD_FIRST_NAME => $faker->firstName,
+                User::FIELD_LAST_NAME => $faker->lastName,
+                User::FIELD_LANGUAGE => $faker->languageCode,
+                User::FIELD_EMAIL => $faker->email,
+                User::FIELD_IS_ACTIVE => $faker->boolean,
                 User::FIELD_PASSWORD_HASH => 'some_hash',
-                User::FIELD_API_TOKEN     => 'some_token',
+                User::FIELD_API_TOKEN => 'some_token',
             ];
         });
 
         $allBoards = $this->readAll($connection, Board::TABLE_NAME);
-        $allUsers  = $this->readAll($connection, User::TABLE_NAME);
+        $allUsers = $this->readAll($connection, User::TABLE_NAME);
         $this->seedTable($connection, 20, Post::TABLE_NAME, function () use ($faker, $allBoards, $allUsers) {
             return [
-                Post::FIELD_ID_BOARD  => $faker->randomElement($allBoards)[Board::FIELD_ID],
-                Post::FIELD_ID_USER   => $faker->randomElement($allUsers)[User::FIELD_ID],
+                Post::FIELD_ID_BOARD => $faker->randomElement($allBoards)[Board::FIELD_ID],
+                Post::FIELD_ID_USER => $faker->randomElement($allUsers)[User::FIELD_ID],
                 Post::FIELD_ID_EDITOR => null,
-                Post::FIELD_TITLE     => $faker->text(50),
-                Post::FIELD_TEXT      => $faker->text(),
+                Post::FIELD_TITLE => $faker->text(50),
+                Post::FIELD_TEXT => $faker->text(),
             ];
         });
 
@@ -103,8 +101,8 @@ class Runner
             return [
                 Comment::FIELD_ID_POST => $faker->randomElement($allPosts)[Post::FIELD_ID],
                 Comment::FIELD_ID_USER => $faker->randomElement($allUsers)[User::FIELD_ID],
-                Comment::FIELD_UUID    => $faker->uuid,
-                Comment::FIELD_TEXT    => $faker->text(),
+                Model::FIELD_UUID => $faker->uuid,
+                Comment::FIELD_TEXT => $faker->text(),
             ];
         });
 
@@ -130,37 +128,33 @@ class Runner
         // there will be one more post without any comments
         $this->seedTable($connection, 1, Post::TABLE_NAME, function () use ($faker, $allBoards, $allUsers) {
             return [
-                Post::FIELD_ID_BOARD  => $faker->randomElement($allBoards)[Board::FIELD_ID],
-                Post::FIELD_ID_USER   => $faker->randomElement($allUsers)[User::FIELD_ID],
+                Post::FIELD_ID_BOARD => $faker->randomElement($allBoards)[Board::FIELD_ID],
+                Post::FIELD_ID_USER => $faker->randomElement($allUsers)[User::FIELD_ID],
                 Post::FIELD_ID_EDITOR => null,
-                Post::FIELD_TITLE     => $faker->text(50),
-                Post::FIELD_TEXT      => $faker->text(),
+                Post::FIELD_TITLE => $faker->text(50),
+                Post::FIELD_TEXT => $faker->text(),
             ];
         });
     }
 
     /**
      * @param Connection $connection
-     * @param string     $tableName
-     *
+     * @param string $tableName
      * @return array
      */
-    protected function readAll(Connection $connection, $tableName)
+    protected function readAll(Connection $connection, string $tableName): array
     {
-        $result = $connection->fetchAll("SELECT * FROM `$tableName`");
-
-        return $result;
+        return $connection->fetchAll("SELECT * FROM `$tableName`");
     }
 
     /**
      * @param Connection $connection
-     * @param int        $records
-     * @param string     $tableName
-     * @param Closure    $fieldsClosure
-     *
+     * @param int $records
+     * @param string $tableName
+     * @param Closure $fieldsClosure
      * @throws DBALException
      */
-    private function seedTable(Connection $connection, $records, $tableName, Closure $fieldsClosure)
+    private function seedTable(Connection $connection, int $records, string $tableName, Closure $fieldsClosure)
     {
         for ($i = 0; $i !== (int)$records; $i++) {
             $fields = $fieldsClosure();
@@ -168,7 +162,7 @@ class Runner
             $fields = array_merge($fields, [Model::FIELD_CREATED_AT => date('Y-m-d H:i:s')]);
             try {
                 $result = $connection->insert($tableName, $fields);
-            } /** @noinspection PhpRedundantCatchClauseInspection */ catch (UniqueConstraintViolationException $e) {
+            } catch (UniqueConstraintViolationException $e) {
                 // ignore non-unique records
                 $result = true;
             }
@@ -179,14 +173,12 @@ class Runner
 
     /**
      * @param Connection $connection
-     * @param string     $tableName
-     * @param array      $fields
-     *
+     * @param string $tableName
+     * @param array $fields
      * @return void
-     *
      * @throws DBALException
      */
-    private function seedRow(Connection $connection, $tableName, array $fields)
+    private function seedRow(Connection $connection, string $tableName, array $fields)
     {
         $fields = array_merge($fields, [Model::FIELD_CREATED_AT => date('Y-m-d H:i:s')]);
 
@@ -197,7 +189,7 @@ class Runner
 
         try {
             $result = $connection->insert($tableName, $quotedFields);
-        } /** @noinspection PhpRedundantCatchClauseInspection */ catch (UniqueConstraintViolationException $e) {
+        } catch (UniqueConstraintViolationException $e) {
             // ignore non-unique records
             $result = true;
         }
@@ -208,14 +200,12 @@ class Runner
 
     /**
      * @param Connection $connection
-     * @param string     $tableName
-     * @param array      $rows
-     *
+     * @param string $tableName
+     * @param array $rows
      * @return void
-     *
      * @throws DBALException
      */
-    private function seedRows(Connection $connection, $tableName, array $rows)
+    private function seedRows(Connection $connection, string $tableName, array $rows)
     {
         foreach ($rows as $row) {
             $this->seedRow($connection, $tableName, $row);

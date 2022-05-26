@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,16 @@ use Whoa\Tests\Flute\Data\Models\Model;
 abstract class BaseSchema extends Schema
 {
     /** Attribute name */
-    const ATTR_UUID = 'uuid-attribute';
+    public const ATTR_UUID = 'uuid-attribute';
 
     /** Attribute name */
-    const ATTR_CREATED_AT = 'created-at-attribute';
+    public const ATTR_CREATED_AT = 'created-at-attribute';
 
     /** Attribute name */
-    const ATTR_UPDATED_AT = 'updated-at-attribute';
+    public const ATTR_UPDATED_AT = 'updated-at-attribute';
 
     /** Attribute name */
-    const ATTR_DELETED_AT = 'deleted-at-attribute';
+    public const ATTR_DELETED_AT = 'deleted-at-attribute';
 
     /**
      * @inheritdoc
@@ -48,8 +48,8 @@ abstract class BaseSchema extends Schema
     {
         /** @var Model $modelClass */
         $modelClass = static::MODEL;
-        $pkName     = $modelClass::FIELD_ID;
-        $index      = $resource->{$pkName};
+        $pkName = $modelClass::FIELD_ID;
+        $index = $resource->{$pkName};
 
         return $index === null ? null : (string)$index;
     }

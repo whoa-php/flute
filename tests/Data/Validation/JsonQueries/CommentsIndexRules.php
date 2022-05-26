@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Validation\JsonQueries;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,11 @@ namespace Whoa\Tests\Flute\Data\Validation\JsonQueries;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Validation\JsonQueries;
+
+use Whoa\Flute\Contracts\Schema\SchemaInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiQueryRulesInterface;
 use Whoa\Tests\Flute\Data\Models\Comment;
 use Whoa\Tests\Flute\Data\Schemas\CommentSchema;
@@ -44,10 +48,10 @@ class CommentsIndexRules implements JsonApiQueryRulesInterface
     public static function getFilterRules(): ?array
     {
         return [
-            CommentSchema::RESOURCE_ID => r::stringToInt(r::inValues([3, 5, 7, 9])),
-            CommentSchema::ATTR_TEXT   => r::isString(r::stringLengthMin(2)),
-            CommentSchema::ATTR_INT    => r::stringToInt(r::between(1, 10)),
-            CommentSchema::ATTR_BOOL   => r::stringToBool(),
+            SchemaInterface::RESOURCE_ID => r::stringToInt(r::inValues([3, 5, 7, 9])),
+            CommentSchema::ATTR_TEXT => r::isString(r::stringLengthMin(2)),
+            CommentSchema::ATTR_INT => r::stringToInt(r::between(1, 10)),
+            CommentSchema::ATTR_BOOL => r::stringToBool(),
         ];
     }
 
@@ -59,7 +63,7 @@ class CommentsIndexRules implements JsonApiQueryRulesInterface
         return [
             CommentSchema::TYPE =>
                 r::isString(r::inValues([CommentSchema::ATTR_TEXT, CommentSchema::REL_USER, CommentSchema::REL_POST])),
-            PostSchema::TYPE    =>
+            PostSchema::TYPE =>
                 r::isString(r::inValues([PostSchema::ATTR_TITLE, PostSchema::REL_USER, PostSchema::REL_COMMENTS])),
         ];
     }

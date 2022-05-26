@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Models;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Models;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Models;
+
 use Whoa\Flute\Contracts\Models\PaginatedDataInterface;
 
 /**
@@ -29,16 +32,16 @@ class PaginatedData implements PaginatedDataInterface
     private $data;
 
     /** @var  bool */
-    private $isCollection = false;
+    private bool $isCollection = false;
 
     /** @var  bool */
-    private $hasMoreItems = false;
+    private bool $hasMoreItems = false;
 
     /** @var  int|null */
-    private $offset = null;
+    private ?int $offset = null;
 
     /** @var  int|null */
-    private $size = null;
+    private ?int $size = null;
 
     /**
      * @param mixed $data

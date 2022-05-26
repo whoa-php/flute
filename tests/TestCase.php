@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,21 +69,24 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     /**
      * @param array $modelClasses
-     * @param bool  $requireReverseRelationships
-     *
+     * @param bool $requireReverseRelationships
      * @return ModelSchemaInfoInterface
      */
     public static function createSchemas(
         array $modelClasses,
-        $requireReverseRelationships = true
-    ): ModelSchemaInfoInterface
-    {
-        $registered    = [];
-        $modelSchemas  = new ModelSchemas();
+        bool $requireReverseRelationships = true
+    ): ModelSchemaInfoInterface {
+        $registered = [];
+        $modelSchemas = new ModelSchemas();
         $registerModel = function (string $modelClass) use ($modelSchemas, &$registered, $requireReverseRelationships) {
             /** @var ModelInterface $modelClass */
             $modelSchemas->registerClass(
-                (string)$modelClass, $modelClass::getTableName(), $modelClass::getPrimaryKeyName(), $modelClass::getAttributeTypes(), $modelClass::getAttributeLengths(), $modelClass::getRawAttributes()
+                (string)$modelClass,
+                $modelClass::getTableName(),
+                $modelClass::getPrimaryKeyName(),
+                $modelClass::getAttributeTypes(),
+                $modelClass::getAttributeLengths(),
+                $modelClass::getRawAttributes()
             );
 
             $relationships = $modelClass::getRelationships();
@@ -93,18 +96,20 @@ class TestCase extends \PHPUnit\Framework\TestCase
                     /** @var string $rClass */
                     $modelSchemas->registerBelongsToOneRelationship($modelClass, $relName, $fKey, $rClass, $rRel);
                     $registered[(string)$modelClass][$relName] = true;
-                    $registered[$rClass][$rRel]                = true;
+                    $registered[$rClass][$rRel] = true;
 
                     // Sanity check. Every `belongs_to` should be paired with `has_many` on the other side.
                     /** @var ModelInterface $rClass */
-                    $rRelationships   = $rClass::getRelationships();
+                    $rRelationships = $rClass::getRelationships();
                     $isRelationshipOk = $requireReverseRelationships === false ||
                         (isset($rRelationships[RelationshipTypes::HAS_MANY][$rRel]) === true &&
                             $rRelationships[RelationshipTypes::HAS_MANY][$rRel] === [$modelClass, $fKey, $relName]);
-                    /** @var string $modelClass */
 
-                    assert($isRelationshipOk, "`belongsTo` relationship `$relName` of class $modelClass " .
-                        "should be paired with `hasMany` relationship.");
+                    assert(
+                        $isRelationshipOk,
+                        "`belongsTo` relationship `$relName` of class $modelClass " .
+                        "should be paired with `hasMany` relationship."
+                    );
                 }
             }
 
@@ -112,13 +117,15 @@ class TestCase extends \PHPUnit\Framework\TestCase
                 foreach ($relationships[RelationshipTypes::HAS_MANY] as $relName => [$rClass, $fKey, $rRel]) {
                     // Sanity check. Every `has_many` should be paired with `belongs_to` on the other side.
                     /** @var ModelInterface $rClass */
-                    $rRelationships   = $rClass::getRelationships();
+                    $rRelationships = $rClass::getRelationships();
                     $isRelationshipOk = $requireReverseRelationships === false ||
                         (isset($rRelationships[RelationshipTypes::BELONGS_TO][$rRel]) === true &&
                             $rRelationships[RelationshipTypes::BELONGS_TO][$rRel] === [$modelClass, $fKey, $relName]);
-                    /** @var string $modelClass */
-                    assert($isRelationshipOk, "`hasMany` relationship `$relName` of class $modelClass " .
-                        "should be paired with `belongsTo` relationship.");
+                    assert(
+                        $isRelationshipOk,
+                        "`hasMany` relationship `$relName` of class $modelClass " .
+                        "should be paired with `belongsTo` relationship."
+                    );
                 }
             }
 
@@ -139,7 +146,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
                         $rRel
                     );
                     $registered[(string)$modelClass][$relName] = true;
-                    $registered[$rClass][$rRel]                = true;
+                    $registered[$rClass][$rRel] = true;
                 }
             }
         };
@@ -147,14 +154,6 @@ class TestCase extends \PHPUnit\Framework\TestCase
         array_map($registerModel, $modelClasses);
 
         return $modelSchemas;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
     }
 
     /**
@@ -169,11 +168,10 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     /**
      * @return Connection
-     *
      * @throws Exception
      * @throws DBALException
      */
-    protected function createConnection()
+    protected function createConnection(): Connection
     {
         $connection = DriverManager::getConnection(['url' => 'sqlite:///', 'memory' => true]);
         $this->assertNotSame(false, $connection->executeStatement('PRAGMA foreign_keys = ON;'));
@@ -183,7 +181,6 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     /**
      * @param Connection $connection
-     *
      * @throws DBALException
      */
     protected function migrateDatabase(Connection $connection)
@@ -194,11 +191,10 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     /**
      * @return Connection
-     *
      * @throws Exception
      * @throws DBALException
      */
-    protected function initDb()
+    protected function initDb(): Connection
     {
         $connection = $this->createConnection();
         $this->migrateDatabase($connection);
@@ -209,9 +205,9 @@ class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @return ModelSchemaInfoInterface
      */
-    protected function getModelSchemas()
+    protected function getModelSchemas(): ModelSchemaInfoInterface
     {
-        $modelSchemas = static::createSchemas([
+        return static::createSchemas([
             Board::class,
             Comment::class,
             Emotion::class,
@@ -222,37 +218,34 @@ class TestCase extends \PHPUnit\Framework\TestCase
             StringPKModel::class,
             PostExtended::class,
         ]);
-
-        return $modelSchemas;
     }
 
     /**
-     * @param FactoryInterface         $factory
+     * @param FactoryInterface $factory
      * @param ModelSchemaInfoInterface $modelSchemas
-     *
      * @return JsonSchemasInterface
      */
-    protected function getJsonSchemas(FactoryInterface $factory, ModelSchemaInfoInterface $modelSchemas)
-    {
+    protected function getJsonSchemas(
+        FactoryInterface $factory,
+        ModelSchemaInfoInterface $modelSchemas
+    ): JsonSchemasInterface {
         [$modelToSchemaMap, $typeToSchemaMap] = $this->getSchemaMap();
 
-        $schemas = $factory->createJsonSchemas($modelToSchemaMap, $typeToSchemaMap, $modelSchemas);
-
-        return $schemas;
+        return $factory->createJsonSchemas($modelToSchemaMap, $typeToSchemaMap, $modelSchemas);
     }
 
     /**
      * @return array
      */
-    protected function getSchemaMap()
+    protected function getSchemaMap(): array
     {
         $modelToSchemaMap = [
-            Board::class    => BoardSchema::class,
-            Comment::class  => CommentSchema::class,
-            Emotion::class  => EmotionSchema::class,
-            Post::class     => PostSchema::class,
-            Role::class     => RoleSchema::class,
-            User::class     => UserSchema::class,
+            Board::class => BoardSchema::class,
+            Comment::class => CommentSchema::class,
+            Emotion::class => EmotionSchema::class,
+            Post::class => PostSchema::class,
+            Role::class => RoleSchema::class,
+            User::class => UserSchema::class,
             Category::class => CategorySchema::class,
         ];
 
@@ -260,7 +253,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
         foreach ($modelToSchemaMap as $modelClass => $schemaClass) {
             assert(static::classImplements($schemaClass, SchemaInterface::class));
             /** @var SchemaInterface $schemaClass */
-            $type                   = $schemaClass::TYPE;
+            $type = $schemaClass::TYPE;
             $typeToSchemaMap[$type] = $schemaClass;
         }
 
@@ -270,7 +263,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    protected function getJsonValidationRuleSets()
+    protected function getJsonValidationRuleSets(): array
     {
         return [
             CreateBoardRules::class,
@@ -285,7 +278,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    protected function getFormValidationRuleSets()
+    protected function getFormValidationRuleSets(): array
     {
         return [
             Data\Validation\Forms\CreateCommentRules::class,
@@ -296,7 +289,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    protected function getQueryValidationRuleSets()
+    protected function getQueryValidationRuleSets(): array
     {
         return [
             Data\Validation\JsonQueries\AllowEverythingRules::class,
@@ -312,7 +305,6 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     /**
      * @param iterable $iterable
-     *
      * @return array
      */
     protected function iterableToArray(iterable $iterable): array
@@ -322,7 +314,6 @@ class TestCase extends \PHPUnit\Framework\TestCase
 
     /**
      * @param iterable $iterable
-     *
      * @return array
      */
     protected function deepIterableToArray(iterable $iterable): array

@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Exceptions;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Contracts\Exceptions;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Exceptions;
+
 use Neomerx\JsonApi\Exceptions\JsonApiException;
 use Throwable;
 
@@ -28,7 +31,6 @@ interface JsonApiThrowableConverterInterface
 {
     /**
      * @param Throwable $throwable
-     *
      * @return JsonApiException|null
      */
     public static function convert(Throwable $throwable): ?JsonApiException;

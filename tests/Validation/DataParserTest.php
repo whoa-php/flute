@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,11 @@ use Whoa\Container\Container;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
 use Whoa\Doctrine\Json\DateTime as WhoaDateTime;
+use Whoa\Doctrine\Types\DateTimeType;
+use Whoa\Doctrine\Types\DateType;
+use Whoa\Doctrine\Types\UuidType;
 use Whoa\Flute\Contracts\Schema\JsonSchemasInterface;
+use Whoa\Flute\Contracts\Schema\SchemaInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiDataParserInterface;
 use Whoa\Flute\Factory;
 use Whoa\Flute\L10n\Messages;
@@ -72,6 +76,7 @@ class DataParserTest extends TestCase
 {
     /**
      * @inheritDoc
+     * @throws DBALException
      */
     protected function setUp(): void
     {
@@ -79,25 +84,24 @@ class DataParserTest extends TestCase
 
         // If test is run withing the whole test suite then those lines not needed, however
         // if only tests from this file are run then the lines are required.
-        Type::hasType(SystemDateTimeType::NAME) === true ?: Type::addType(SystemDateTimeType::NAME, SystemDateTimeType::class);
-        Type::hasType(SystemDateType::NAME) === true ?: Type::addType(SystemDateType::NAME, SystemDateType::class);
+        Type::hasType(DateTimeType::NAME) === true ?: Type::addType(DateTimeType::NAME, SystemDateTimeType::class);
+        Type::hasType(DateType::NAME) === true ?: Type::addType(DateType::NAME, SystemDateType::class);
 
-        Type::hasType(SystemUuidType::NAME) === true ?: Type::addType(SystemUuidType::NAME, SystemUuidType::class);
+        Type::hasType(UuidType::NAME) === true ?: Type::addType(UuidType::NAME, SystemUuidType::class);
     }
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureValidData(): void
     {
-        $text      = 'Outside every fat man there was an even fatter man trying to close in';
-        $int       = 123;
-        $float     = 3.21;
-        $bool      = true;
-        $now       = new DateTimeImmutable();
-        $dateTime  = $now->format(WhoaDateTime::JSON_API_FORMAT);
+        $text = 'Outside every fat man there was an even fatter man trying to close in';
+        $int = 123;
+        $float = 3.21;
+        $bool = true;
+        $now = new DateTimeImmutable();
+        $dateTime = $now->format(WhoaDateTime::JSON_API_FORMAT);
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -124,7 +128,7 @@ class DataParserTest extends TestCase
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -133,10 +137,10 @@ EOT;
             v::equals(null),
             v::equals('comments'),
             [
-                CommentSchema::ATTR_TEXT      => v::isString(v::stringLengthMin(1)),
-                CommentSchema::ATTR_INT       => v::isString(v::stringToInt()),
-                CommentSchema::ATTR_FLOAT     => v::isString(v::stringToFloat()),
-                CommentSchema::ATTR_BOOL      => v::isString(v::stringToBool()),
+                CommentSchema::ATTR_TEXT => v::isString(v::stringLengthMin(1)),
+                CommentSchema::ATTR_INT => v::isString(v::stringToInt()),
+                CommentSchema::ATTR_FLOAT => v::isString(v::stringToFloat()),
+                CommentSchema::ATTR_BOOL => v::isString(v::stringToBool()),
                 CommentSchema::ATTR_DATE_TIME => v::isString(v::stringToDateTime(WhoaDateTime::JSON_API_FORMAT)),
             ],
             [
@@ -151,21 +155,20 @@ EOT;
         $captures = $validator->getCaptures();
         $this->assertEmpty($validator->getErrors());
         $this->assertCount(9, $captures);
-        $this->assertSame(CommentSchema::TYPE, $captures[CommentSchema::RESOURCE_TYPE]);
-        $this->assertNull($captures[CommentSchema::RESOURCE_ID]);
+        $this->assertSame(CommentSchema::TYPE, $captures[SchemaInterface::RESOURCE_TYPE]);
+        $this->assertNull($captures[SchemaInterface::RESOURCE_ID]);
         $this->assertSame($text, $captures[CommentSchema::ATTR_TEXT]);
         $this->assertSame($int, $captures[CommentSchema::ATTR_INT]);
         $this->assertSame($float, $captures[CommentSchema::ATTR_FLOAT]);
         $this->assertSame($bool, $captures[CommentSchema::ATTR_BOOL]);
         $this->assertTrue($captures[CommentSchema::ATTR_DATE_TIME] instanceof DateTimeInterface);
         $this->assertSame(9, $captures[CommentSchema::REL_USER]);
-        // unlike user relationship we didn't converted strings to int.
+        // unlike user relationship we didn't convert strings to int.
         $this->assertSame(['5', '12'], $captures[CommentSchema::REL_EMOTIONS]);
     }
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureValidToOneData(): void
@@ -175,7 +178,7 @@ EOT;
              "data" : { "type" : "users", "id" : "9" }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -199,7 +202,6 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureValidToManyData(): void
@@ -212,7 +214,7 @@ EOT;
               ]
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -231,7 +233,7 @@ EOT;
         $captures = $validator->getCaptures();
         $this->assertEmpty($validator->getErrors());
         $this->assertCount(1, $captures);
-        // note we didn't converted strings to int.
+        // note we didn't convert strings to int.
         $this->assertSame(['5', '12'], $captures[CommentSchema::REL_EMOTIONS]);
     }
 
@@ -247,7 +249,7 @@ EOT;
              "data" : { "type": "abc", "id":"123" }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -274,7 +276,7 @@ EOT;
              "data" : [ { "type" : "emotions", "id" : "1" } ]
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -295,12 +297,11 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureNullOrEmptyInRelationships(): void
     {
-        $text      = 'Outside every fat man there was an even fatter man trying to close in';
+        $text = 'Outside every fat man there was an even fatter man trying to close in';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -319,7 +320,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -351,12 +352,11 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureInvalidData1(): void
     {
-        $text      = 'Outside every fat man there was an even fatter man trying to close in';
+        $text = 'Outside every fat man there was an even fatter man trying to close in';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -379,7 +379,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -401,7 +401,7 @@ EOT;
             ]
         );
 
-        $exception    = null;
+        $exception = null;
         $gotException = false;
         try {
             $validator->assert($input);
@@ -414,7 +414,7 @@ EOT;
 
         /** @var Error[] $errors */
         $errors = $exception->getErrors();
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(3, $errors);
 
         $this->assertEquals(422, $errors[0]->getStatus());
@@ -438,7 +438,6 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureInvalidData2(): void
@@ -465,7 +464,7 @@ EOT;
             ]
         );
 
-        $exception    = null;
+        $exception = null;
         $gotException = false;
         try {
             $validator->assert($input);
@@ -478,7 +477,7 @@ EOT;
 
         /** @var Error[] $errors */
         $errors = $exception->getErrors()->getArrayCopy();
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(6, $errors);
 
         $this->assertEquals(422, $errors[0]->getStatus());
@@ -511,7 +510,6 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureInvalidData3(): void
@@ -533,7 +531,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -552,7 +550,7 @@ EOT;
             ]
         );
 
-        $exception    = null;
+        $exception = null;
         $gotException = false;
         try {
             $validator->assert($input);
@@ -565,7 +563,7 @@ EOT;
 
         /** @var Error[] $errors */
         $errors = $exception->getErrors()->getArrayCopy();
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(3, $errors);
 
         $this->assertEquals(422, $errors[0]->getStatus());
@@ -589,7 +587,6 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testCaptureInvalidData4(): void
@@ -607,7 +604,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -626,7 +623,7 @@ EOT;
             ]
         );
 
-        $exception    = null;
+        $exception = null;
         $gotException = false;
         try {
             $validator->assert($input);
@@ -639,7 +636,7 @@ EOT;
 
         /** @var Error[] $errors */
         $errors = $exception->getErrors()->getArrayCopy();
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(3, $errors);
 
         $this->assertEquals(422, $errors[0]->getStatus());
@@ -663,12 +660,11 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testValidateWithNotExistingNames(): void
     {
-        $text      = 'Outside every fat man there was an even fatter man trying to close in';
+        $text = 'Outside every fat man there was an even fatter man trying to close in';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -691,7 +687,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -708,7 +704,7 @@ EOT;
 
         $this->assertEquals([
             DocumentInterface::KEYWORD_TYPE => CommentSchema::TYPE,
-            DocumentInterface::KEYWORD_ID   => null,
+            DocumentInterface::KEYWORD_ID => null,
         ], $validator->getCaptures());
 
         $this->assertCount(3, $validator->getErrors());
@@ -716,7 +712,6 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testInvalidInputDataFormat1(): void
@@ -732,7 +727,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -752,7 +747,7 @@ EOT;
 
         $this->assertEquals([
             DocumentInterface::KEYWORD_TYPE => CommentSchema::TYPE,
-            DocumentInterface::KEYWORD_ID   => null,
+            DocumentInterface::KEYWORD_ID => null,
         ], $validator->getCaptures());
 
         $this->assertCount(1, $validator->getErrors());
@@ -760,7 +755,6 @@ EOT;
 
     /**
      * Validation test.
-     *
      * @throws Exception
      */
     public function testInvalidInputDataFormat2(): void
@@ -785,7 +779,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser(
@@ -805,7 +799,7 @@ EOT;
 
         $this->assertEquals([
             DocumentInterface::KEYWORD_TYPE => CommentSchema::TYPE,
-            DocumentInterface::KEYWORD_ID   => null,
+            DocumentInterface::KEYWORD_ID => null,
         ], $validator->getCaptures());
 
         $this->assertCount(2, $validator->getErrors());
@@ -813,13 +807,12 @@ EOT;
 
     /**
      * Test unique in database rule.
-     *
      * @throws Exception
      * @throws DBALException
      */
     public function testDbUniqueRule(): void
     {
-        $container                    = $this->createContainer();
+        $container = $this->createContainer();
         $container[Connection::class] = $connection = $this->createConnection();
         $this->migrateDatabase($connection);
 
@@ -842,7 +835,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
         $this->assertTrue($validator->parse($input));
 
         $jsonInput = <<<EOT
@@ -854,13 +847,12 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
         $this->assertFalse($validator->parse($input));
     }
 
     /**
      * Test cover.
-     *
      * @throws Exception
      */
     public function testCoverEnableIgnoreUnknowns(): void
@@ -885,7 +877,6 @@ EOT;
 
     /**
      * Add some test coverage for rarely used functionality.
-     *
      * @throws Exception
      */
     public function testAddTestCoverToExecuteEnds(): void
@@ -897,12 +888,10 @@ EOT;
             public function toBlock(): ExecutionBlockInterface
             {
                 $startOrEndCallable = [DataParserTest::class, 'successValidationStartOrEnd'];
-                $passThrough        = (new ProcedureBlock([Success::class, 'execute']))
+                return (new ProcedureBlock([Success::class, 'execute']))
                     ->setStartCallable($startOrEndCallable)
                     ->setProperties($this->composeStandardProperties($this->getName(), false))
                     ->setEndCallable($startOrEndCallable);
-
-                return $passThrough;
             }
         };
 
@@ -914,7 +903,7 @@ EOT;
             }
         }
 EOT;
-        $input     = json_decode($jsonInput, true);
+        $input = json_decode($jsonInput, true);
 
         $container = $this->createContainer();
         $validator = $this->createParser($container, 'some_rule_name', $passThroughRule, v::success(), [], [], []);
@@ -928,7 +917,6 @@ EOT;
 
     /**
      * A dummy rule for validation testing.
-     *
      * @param ContextInterface $context
      *
      * @return array
@@ -940,15 +928,14 @@ EOT;
         return [];
     }
 
-    /** @noinspection PhpTooManyParametersInspection
+    /**
      * @param ContainerInterface $container
-     * @param string             $rulesClass
-     * @param RuleInterface      $idRule
-     * @param RuleInterface      $typeRule
-     * @param array              $attributeRules
-     * @param array              $toOneRules
-     * @param array              $toManyRules
-     *
+     * @param string $rulesClass
+     * @param RuleInterface $idRule
+     * @param RuleInterface $typeRule
+     * @param array $attributeRules
+     * @param array $toOneRules
+     * @param array $toManyRules
      * @return JsonApiDataParserInterface
      */
     private function createParser(
@@ -959,8 +946,7 @@ EOT;
         array $attributeRules,
         array $toOneRules,
         array $toManyRules
-    ): JsonApiDataParserInterface
-    {
+    ): JsonApiDataParserInterface {
         $serializedData = (new JsonApiDataRulesSerializer(new BlockSerializer()))->addDataRules(
             $rulesClass,
             $idRule,
@@ -971,12 +957,12 @@ EOT;
         )->getData();
 
         $exception = null;
-        $parser    = null;
-        $blocks    = JsonApiQueryRulesSerializer::readBlocks($serializedData);
+        $parser = null;
+        $blocks = JsonApiQueryRulesSerializer::readBlocks($serializedData);
         try {
             /** @var FormatterFactoryInterface $formatterFactory */
             $formatterFactory = $container->get(FormatterFactoryInterface::class);
-            $parser           = new DataParser(
+            $parser = new DataParser(
                 $rulesClass,
                 JsonApiDataRulesSerializer::class,
                 $serializedData,
@@ -984,7 +970,7 @@ EOT;
                 new JsonApiErrorCollection($formatterFactory->createFormatter(Messages::NAMESPACE_NAME)),
                 $container->get(FormatterFactoryInterface::class)
             );
-        } catch (Exception | NotFoundExceptionInterface | ContainerExceptionInterface $exception) {
+        } catch (Exception|NotFoundExceptionInterface|ContainerExceptionInterface $exception) {
         }
         $this->assertNull($exception);
 
@@ -998,8 +984,8 @@ EOT;
     {
         $container = new Container();
 
-        $container[ModelSchemaInfoInterface::class]  = $schemas = $this->getModelSchemas();
-        $container[JsonSchemasInterface::class]      = $this->getJsonSchemas(new Factory($container), $schemas);
+        $container[ModelSchemaInfoInterface::class] = $schemas = $this->getModelSchemas();
+        $container[JsonSchemasInterface::class] = $this->getJsonSchemas(new Factory($container), $schemas);
         $container[FormatterFactoryInterface::class] = new FormatterFactory();
 
         return $container;

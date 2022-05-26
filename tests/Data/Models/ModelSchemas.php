@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,15 +33,11 @@ use Whoa\Contracts\Data\RelationshipTypes;
 class ModelSchemas implements ModelSchemaInfoInterface
 {
     /**
-     * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
-     *
      * @throws DBALException
      */
-    public function getAttributeTypeInstances($class)
+    public function getAttributeTypeInstances($class): array
     {
-        $types  = $this->getAttributeTypes($class);
+        $types = $this->getAttributeTypes($class);
         $result = [];
 
         foreach ($types as $name => $type) {
@@ -56,64 +52,64 @@ class ModelSchemas implements ModelSchemaInfoInterface
     /**
      * @var array
      */
-    private $relationshipTypes = [];
+    private array $relationshipTypes = [];
 
     /**
      * @var array
      */
-    private $reversedRelationships = [];
+    private array $reversedRelationships = [];
 
     /**
      * @var array
      */
-    private $reversedClasses = [];
+    private array $reversedClasses = [];
 
     /**
      * @var array
      */
-    private $foreignKeys = [];
+    private array $foreignKeys = [];
 
     /**
      * @var array
      */
-    private $belongsToMany = [];
+    private array $belongsToMany = [];
 
     /**
      * @var array
      */
-    private $tableNames = [];
+    private array $tableNames = [];
 
     /**
      * @var array
      */
-    private $primaryKeys = [];
+    private array $primaryKeys = [];
 
     /**
      * @var array
      */
-    private $attributeTypes = [];
+    private array $attributeTypes = [];
 
     /**
      * @var array
      */
-    private $attributeLengths = [];
+    private array $attributeLengths = [];
 
     /**
      * @var array
      */
-    private $attributes = [];
+    private array $attributes = [];
 
     /**
      * @var array
      */
-    private $rawAttributes = [];
+    private array $rawAttributes = [];
 
     /**
      * @inheritdoc
      */
     public function getData(): array
     {
-        $result = [
+        return [
             $this->foreignKeys,
             $this->belongsToMany,
             $this->relationshipTypes,
@@ -126,19 +122,25 @@ class ModelSchemas implements ModelSchemaInfoInterface
             $this->rawAttributes,
             $this->reversedClasses,
         ];
-
-        return $result;
     }
 
     /**
-     * @inheritdoc
+     * @param array $data
+     * @return void
      */
     public function setData(array $data)
     {
         [
-            $this->foreignKeys, $this->belongsToMany, $this->relationshipTypes,
-            $this->reversedRelationships, $this->tableNames, $this->primaryKeys,
-            $this->attributeTypes, $this->attributeLengths, $this->attributes, $this->rawAttributes,
+            $this->foreignKeys,
+            $this->belongsToMany,
+            $this->relationshipTypes,
+            $this->reversedRelationships,
+            $this->tableNames,
+            $this->primaryKeys,
+            $this->attributeTypes,
+            $this->attributeLengths,
+            $this->attributes,
+            $this->rawAttributes,
             $this->reversedClasses
         ] = $data;
     }
@@ -147,9 +149,14 @@ class ModelSchemas implements ModelSchemaInfoInterface
      * @inheritdoc
      */
     public function registerClass(
-        string $class, string $tableName, string $primaryKey, array $attributeTypes, array $attributeLengths, array $rawAttributes = [], array $virtualAttributes = []
-    ): ModelSchemaInfoInterface
-    {
+        string $class,
+        string $tableName,
+        string $primaryKey,
+        array $attributeTypes,
+        array $attributeLengths,
+        array $rawAttributes = [],
+        array $virtualAttributes = []
+    ): ModelSchemaInfoInterface {
         if (empty($class) === true) {
             throw new InvalidArgumentException('class');
         }
@@ -162,12 +169,12 @@ class ModelSchemas implements ModelSchemaInfoInterface
             throw new InvalidArgumentException('primaryKey');
         }
 
-        $this->tableNames[$class]       = $tableName;
-        $this->primaryKeys[$class]      = $primaryKey;
-        $this->attributeTypes[$class]   = $attributeTypes;
+        $this->tableNames[$class] = $tableName;
+        $this->primaryKeys[$class] = $primaryKey;
+        $this->attributeTypes[$class] = $attributeTypes;
         $this->attributeLengths[$class] = $attributeLengths;
-        $this->attributes[$class]       = array_keys($attributeTypes);
-        $this->rawAttributes[$class]    = $rawAttributes;
+        $this->attributes[$class] = array_keys($attributeTypes);
+        $this->rawAttributes[$class] = $rawAttributes;
 
         return $this;
     }
@@ -177,9 +184,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function hasClass(string $class): bool
     {
-        $result = array_key_exists($class, $this->tableNames);
-
-        return $result;
+        return array_key_exists($class, $this->tableNames);
     }
 
     /**
@@ -187,9 +192,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getTable(string $class): string
     {
-        $result = $this->tableNames[$class];
-
-        return $result;
+        return $this->tableNames[$class];
     }
 
     /**
@@ -197,9 +200,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getPrimaryKey(string $class): string
     {
-        $result = $this->primaryKeys[$class];
-
-        return $result;
+        return $this->primaryKeys[$class];
     }
 
     /**
@@ -207,9 +208,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getAttributeTypes(string $class): array
     {
-        $result = $this->attributeTypes[$class];
-
-        return $result;
+        return $this->attributeTypes[$class];
     }
 
     /**
@@ -217,9 +216,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getAttributeType(string $class, string $name): string
     {
-        $result = $this->attributeTypes[$class][$name];
-
-        return $result;
+        return $this->attributeTypes[$class][$name];
     }
 
     /**
@@ -227,9 +224,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function hasAttributeType(string $class, string $name): bool
     {
-        $result = isset($this->attributeTypes[$class][$name]);
-
-        return $result;
+        return isset($this->attributeTypes[$class][$name]);
     }
 
     /**
@@ -237,9 +232,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getAttributeLengths(string $class): array
     {
-        $result = $this->attributeLengths[$class];
-
-        return $result;
+        return $this->attributeLengths[$class];
     }
 
     /**
@@ -247,9 +240,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function hasAttributeLength(string $class, string $name): bool
     {
-        $result = isset($this->attributeLengths[$class][$name]);
-
-        return $result;
+        return isset($this->attributeLengths[$class][$name]);
     }
 
     /**
@@ -257,9 +248,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getAttributeLength(string $class, string $name): int
     {
-        $result = $this->attributeLengths[$class][$name];
-
-        return $result;
+        return $this->attributeLengths[$class][$name];
     }
 
     /**
@@ -267,9 +256,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getAttributes(string $class): array
     {
-        $result = $this->attributes[$class];
-
-        return $result;
+        return $this->attributes[$class];
     }
 
     /**
@@ -277,9 +264,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getRawAttributes(string $class): array
     {
-        $result = $this->rawAttributes[$class];
-
-        return $result;
+        return $this->rawAttributes[$class];
     }
 
     /**
@@ -287,9 +272,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function hasRelationship(string $class, string $name): bool
     {
-        $result = isset($this->relationshipTypes[$class][$name]);
-
-        return $result;
+        return isset($this->relationshipTypes[$class][$name]);
     }
 
     /**
@@ -297,9 +280,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getRelationshipType(string $class, string $name): int
     {
-        $result = $this->relationshipTypes[$class][$name];
-
-        return $result;
+        return $this->relationshipTypes[$class][$name];
     }
 
     /**
@@ -307,9 +288,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getReverseRelationship(string $class, string $name): array
     {
-        $result = $this->reversedRelationships[$class][$name];
-
-        return $result;
+        return $this->reversedRelationships[$class][$name];
     }
 
     /**
@@ -320,7 +299,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
         $reverseClass = $this->getReverseModelClass($class, $name);
 
         $table = $this->getTable($reverseClass);
-        $key   = $this->getPrimaryKey($reverseClass);
+        $key = $this->getPrimaryKey($reverseClass);
 
         return [$key, $table];
     }
@@ -364,9 +343,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
      */
     public function getBelongsToManyRelationship(string $class, string $name): array
     {
-        $result = $this->belongsToMany[$class][$name];
-
-        return $result;
+        return $this->belongsToMany[$class][$name];
     }
 
     /**
@@ -378,8 +355,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
         string $foreignKey,
         string $reverseClass,
         string $reverseName
-    ): ModelSchemaInfoInterface
-    {
+    ): ModelSchemaInfoInterface {
         $this->registerRelationshipType(RelationshipTypes::BELONGS_TO, $class, $name);
         $this->registerRelationshipType(RelationshipTypes::HAS_MANY, $reverseClass, $reverseName);
 
@@ -391,7 +367,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
         return $this;
     }
 
-    /** @noinspection PhpTooManyParametersInspection
+    /**
      * @inheritdoc
      */
     public function registerBelongsToManyRelationship(
@@ -402,8 +378,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
         string $reverseForeignKey,
         string $reverseClass,
         string $reverseName
-    ): ModelSchemaInfoInterface
-    {
+    ): ModelSchemaInfoInterface {
         $this->registerRelationshipType(RelationshipTypes::BELONGS_TO_MANY, $class, $name);
         $this->registerRelationshipType(RelationshipTypes::BELONGS_TO_MANY, $reverseClass, $reverseName);
 
@@ -413,17 +388,16 @@ class ModelSchemas implements ModelSchemaInfoInterface
         $this->registerReversedRelationship($class, $name, $reverseClass, $reverseName);
         $this->registerReversedRelationship($reverseClass, $reverseName, $class, $name);
 
-        $this->belongsToMany[$class][$name]               = [$table, $foreignKey, $reverseForeignKey];
+        $this->belongsToMany[$class][$name] = [$table, $foreignKey, $reverseForeignKey];
         $this->belongsToMany[$reverseClass][$reverseName] = [$table, $reverseForeignKey, $foreignKey];
 
         return $this;
     }
 
     /**
-     * @param int    $type
+     * @param int $type
      * @param string $class
      * @param string $name
-     *
      * @return void
      */
     private function registerRelationshipType(int $type, string $class, string $name)
@@ -442,7 +416,6 @@ class ModelSchemas implements ModelSchemaInfoInterface
      * @param string $name
      * @param string $reverseClass
      * @param string $reverseName
-     *
      * @return void
      */
     private function registerReversedRelationship(
@@ -450,8 +423,7 @@ class ModelSchemas implements ModelSchemaInfoInterface
         string $name,
         string $reverseClass,
         string $reverseName
-    )
-    {
+    ) {
         assert(
             empty($class) === false &&
             empty($name) === false &&
@@ -460,11 +432,11 @@ class ModelSchemas implements ModelSchemaInfoInterface
         );
 
         // NOTE:
-        // this function relies it would be called after
+        // this function relies on it would be called after
         // `registerRelationshipType` which prevents duplicate registrations
 
         $this->reversedRelationships[$class][$name] = [$reverseClass, $reverseName];
-        $this->reversedClasses[$class][$name]       = $reverseClass;
+        $this->reversedClasses[$class][$name] = $reverseClass;
     }
 
     public function getVirtualAttributes(string $class): array

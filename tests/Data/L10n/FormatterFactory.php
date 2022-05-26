@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\L10n;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Data\L10n;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\L10n;
 
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
 use Whoa\Contracts\L10n\FormatterInterface;
@@ -44,12 +47,10 @@ class FormatterFactory implements FormatterFactoryInterface
      */
     public function createFormatterForLocale(string $namespace, string $locale): FormatterInterface
     {
-        $bundle   = new ResourceBundle($locale, $namespace, []);
-        $encoder  = new BundleEncoder();
+        $bundle = new ResourceBundle($locale, $namespace, []);
+        $encoder = new BundleEncoder();
         $encoder->addBundle($bundle);
         $storage = (new BundleEncoder())->getStorageData($locale);
-        $formatter = new Formatter($locale, $namespace, new Translator(new BundleStorage($storage)));
-
-        return $formatter;
+        return new Formatter($locale, $namespace, new Translator(new BundleStorage($storage)));
     }
 }

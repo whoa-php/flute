@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Models;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Models;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Models;
+
 use Exception;
 use Whoa\Flute\Models\TagStorage;
 use Whoa\Tests\Flute\Data\Models\Post;
@@ -30,7 +33,6 @@ class TagStorageTest extends TestCase
 {
     /**
      * Test storage.
-     *
      * @throws Exception
      */
     public function testStorage(): void
@@ -38,11 +40,11 @@ class TagStorageTest extends TestCase
         $storage = new TagStorage();
 
         $post1 = new Post();
-        $post1->{Post::FIELD_ID}    = 1;
+        $post1->{Post::FIELD_ID} = 1;
         $post1->{Post::FIELD_TITLE} = 'some title 1';
 
         $post2 = new Post();
-        $post2->{Post::FIELD_ID}    = 2;
+        $post2->{Post::FIELD_ID} = 2;
         $post2->{Post::FIELD_TITLE} = 'some title 2';
 
         $storage->register($post1, '');

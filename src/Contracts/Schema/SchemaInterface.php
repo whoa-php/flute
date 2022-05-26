@@ -1,4 +1,5 @@
-<?php declare (strict_types = 1);
+<?php
+declare (strict_types=1);
 
 namespace Whoa\Flute\Contracts\Schema;
 
@@ -27,22 +28,22 @@ use Neomerx\JsonApi\Contracts\Schema\SchemaInterface as BaseSchemaInterface;
 interface SchemaInterface extends BaseSchemaInterface
 {
     /** @var string|null Type */
-    const TYPE = null;
+    public const TYPE = null;
 
     /** @var string|null Model class name */
-    const MODEL = null;
+    public const MODEL = null;
 
     /** Attribute name */
-    const RESOURCE_ID = DocumentInterface::KEYWORD_ID;
+    public const RESOURCE_ID = DocumentInterface::KEYWORD_ID;
 
     /** Attribute name */
-    const RESOURCE_TYPE = DocumentInterface::KEYWORD_TYPE;
+    public const RESOURCE_TYPE = DocumentInterface::KEYWORD_TYPE;
 
     /** Mapping key */
-    const SCHEMA_ATTRIBUTES = 0;
+    public const SCHEMA_ATTRIBUTES = 0;
 
     /** Mapping key */
-    const SCHEMA_RELATIONSHIPS = self::SCHEMA_ATTRIBUTES + 1;
+    public const SCHEMA_RELATIONSHIPS = self::SCHEMA_ATTRIBUTES + 1;
 
     /**
      * @return array

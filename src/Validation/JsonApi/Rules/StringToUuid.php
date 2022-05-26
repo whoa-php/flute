@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2021 info@whoaphp.com
+ * Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,11 @@ final class StringToUuid extends ExecuteRule
     public static function execute($value, ContextInterface $context, $extras = null): array
     {
         if (is_string($value) === true && Uuid::isValid($value) === true) {
-            $reply = static::createSuccessReply(Uuid::fromString($value));
+            $reply = StringToUuid::createSuccessReply(Uuid::fromString($value));
         } elseif ($value instanceof UuidInterface) {
-            $reply = static::createSuccessReply($value);
+            $reply = StringToUuid::createSuccessReply($value);
         } else {
-            $reply = static::createErrorReply(
+            $reply = StringToUuid::createErrorReply(
                 $context,
                 $value,
                 ErrorCodes::IS_UUID,

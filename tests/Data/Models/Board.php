@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace Whoa\Tests\Flute\Data\Models;
 
 use Doctrine\DBAL\Types\Types;
 use Whoa\Contracts\Data\RelationshipTypes;
-use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
+use Whoa\Doctrine\Types\DateTimeType;
 
 /**
  * @package Whoa\Tests\Flute
@@ -31,16 +31,16 @@ use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
 class Board extends Model
 {
     /** @inheritdoc */
-    const TABLE_NAME = 'boards';
+    public const TABLE_NAME = 'boards';
 
     /** @inheritdoc */
-    const FIELD_ID = 'id_board';
+    public const FIELD_ID = 'id_board';
 
     /** Relationship name */
-    const REL_POSTS = 'posts';
+    public const REL_POSTS = 'posts';
 
     /** Field name */
-    const FIELD_TITLE = 'title';
+    public const FIELD_TITLE = 'title';
 
     /**
      * @inheritdoc
@@ -48,11 +48,11 @@ class Board extends Model
     public static function getAttributeTypes(): array
     {
         return [
-            self::FIELD_ID         => Types::INTEGER,
-            self::FIELD_TITLE      => Types::STRING,
-            self::FIELD_CREATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_UPDATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_DELETED_AT => SystemDateTimeType::NAME,
+            self::FIELD_ID => Types::INTEGER,
+            self::FIELD_TITLE => Types::STRING,
+            self::FIELD_CREATED_AT => DateTimeType::NAME,
+            self::FIELD_UPDATED_AT => DateTimeType::NAME,
+            self::FIELD_DELETED_AT => DateTimeType::NAME,
         ];
     }
 

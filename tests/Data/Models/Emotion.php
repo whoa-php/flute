@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ namespace Whoa\Tests\Flute\Data\Models;
 
 use Doctrine\DBAL\Types\Types;
 use Whoa\Contracts\Data\RelationshipTypes;
+use Whoa\Doctrine\Types\DateTimeType;
 use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
 
 /**
@@ -31,16 +32,16 @@ use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
 class Emotion extends Model
 {
     /** @inheritdoc */
-    const TABLE_NAME = 'emotions';
+    public const TABLE_NAME = 'emotions';
 
     /** @inheritdoc */
-    const FIELD_ID = 'id_emotion';
+    public const FIELD_ID = 'id_emotion';
 
     /** Relationship name */
-    const REL_COMMENTS = 'comments';
+    public const REL_COMMENTS = 'comments';
 
     /** Field name */
-    const FIELD_NAME = 'name';
+    public const FIELD_NAME = 'name';
 
     /**
      * @inheritdoc
@@ -48,10 +49,10 @@ class Emotion extends Model
     public static function getAttributeTypes(): array
     {
         return [
-            self::FIELD_ID         => Types::INTEGER,
-            self::FIELD_NAME       => Types::STRING,
-            self::FIELD_CREATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_UPDATED_AT => SystemDateTimeType::NAME,
+            self::FIELD_ID => Types::INTEGER,
+            self::FIELD_NAME => Types::STRING,
+            self::FIELD_CREATED_AT => DateTimeType::NAME,
+            self::FIELD_UPDATED_AT => DateTimeType::NAME,
         ];
     }
 

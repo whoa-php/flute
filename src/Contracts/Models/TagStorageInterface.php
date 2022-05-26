@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
+<?php
 
-namespace Whoa\Flute\Contracts\Models;
-
-    /**
+/**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,30 +17,31 @@ namespace Whoa\Flute\Contracts\Models;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Models;
+
 /**
  * @package Whoa\Flute
  */
 interface TagStorageInterface
 {
     /**
-     * @param mixed  $item
+     * @param mixed $item
      * @param string $tag
-     *
      * @return self
      */
     public function register($item, string $tag): self;
 
     /**
-     * @param mixed    $item
+     * @param mixed $item
      * @param string[] $tags
-     *
      * @return self
      */
     public function registerArray($item, array $tags): self;
 
     /**
      * @param string $tag
-     *
      * @return array
      */
     public function get(string $tag): array;

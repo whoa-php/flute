@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,21 @@ use Doctrine\DBAL\Types\Type;
 use Exception;
 use Whoa\Container\Container;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
+use Whoa\Doctrine\Types\DateTimeType;
+use Whoa\Doctrine\Types\DateType;
+use Whoa\Doctrine\Types\UuidType;
 use Whoa\Flute\Api\BasicRelationshipPaginationStrategy;
 use Whoa\Flute\Contracts\Api\RelationshipPaginationStrategyInterface;
 use Whoa\Flute\Contracts\FactoryInterface;
 use Whoa\Flute\Contracts\Validation\FormValidatorInterface;
+use Whoa\Flute\Exceptions\InvalidArgumentException;
 use Whoa\Flute\Factory;
 use Whoa\Flute\L10n\Messages;
 use Whoa\Flute\Validation\Form\Execution\FormRulesSerializer;
 use Whoa\Flute\Validation\Form\FormValidator;
 use Whoa\Tests\Flute\Data\L10n\FormatterFactory;
 use Whoa\Tests\Flute\Data\Models\Comment;
+use Whoa\Tests\Flute\Data\Models\Model;
 use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
 use Whoa\Tests\Flute\Data\Types\SystemDateType;
 use Whoa\Tests\Flute\Data\Types\SystemUuidType;
@@ -53,19 +58,19 @@ class FormValidatorTest extends TestCase
 {
     /**
      * @inheritDoc
+     * @throws DBALException
      */
     protected function setUp(): void
     {
         parent::setUp();
 
-        Type::hasType(SystemDateTimeType::NAME) === true ?: Type::addType(SystemDateTimeType::NAME, SystemDateTimeType::class);
-        Type::hasType(SystemDateType::NAME) === true ?: Type::addType(SystemDateType::NAME, SystemDateType::class);
-        Type::hasType(SystemUuidType::NAME) === true ?: Type::addType(SystemUuidType::NAME, SystemUuidType::class);
+        Type::hasType(DateTimeType::NAME) === true ?: Type::addType(DateTimeType::NAME, SystemDateTimeType::class);
+        Type::hasType(DateType::NAME) === true ?: Type::addType(DateType::NAME, SystemDateType::class);
+        Type::hasType(UuidType::NAME) === true ?: Type::addType(UuidType::NAME, SystemUuidType::class);
     }
 
     /**
      * @return void
-     *
      * @throws Exception
      */
     public function testValidator(): void
@@ -78,33 +83,31 @@ class FormValidatorTest extends TestCase
             [Comment::FIELD_TEXT => 'The value should be a string.'],
             $this->iterableToArray($validator->getMessages())
         );
-        $this->assertTrue($validator->validate([Comment::FIELD_UUID => '64c7660d-01f6-406a-8d13-e137ce268fde']));
-        $this->assertFalse($validator->validate([Comment::FIELD_UUID => '##1234']));
+        $this->assertTrue($validator->validate([Model::FIELD_UUID => '64c7660d-01f6-406a-8d13-e137ce268fde']));
+        $this->assertFalse($validator->validate([Model::FIELD_UUID => '##1234']));
         $this->assertEquals(
-            [Comment::FIELD_UUID => 'The value should be a valid UUID.'],
+            [Model::FIELD_UUID => 'The value should be a valid UUID.'],
             $this->iterableToArray($validator->getMessages())
         );
     }
 
     /**
      * @return void
-     *
      * @throws Exception
      */
     public function testInvalidInput(): void
     {
-        $this->expectException(\Whoa\Flute\Exceptions\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
 
         $this->assertNotNull($validator = $this->createValidator(CreateCommentRules::class));
 
         $validator->validate('not array');
 
-        $validator->validate([Comment::FIELD_UUID => new \stdClass()]);
+        $validator->validate([Model::FIELD_UUID => new \stdClass()]);
     }
 
     /**
      * @return void
-     *
      * @throws DBALException
      * @throws Exception
      */
@@ -117,7 +120,7 @@ class FormValidatorTest extends TestCase
         $this->assertEquals(
             [
                 Comment::REL_POST => 'The value should be a valid identifier.',
-                'unknown_field'   => 'The value is invalid.',
+                'unknown_field' => 'The value is invalid.',
             ],
             $this->iterableToArray($validator->getMessages())
         );
@@ -132,9 +135,7 @@ class FormValidatorTest extends TestCase
 
     /**
      * @param string $rulesClass
-     *
      * @return FormValidatorInterface
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -143,20 +144,18 @@ class FormValidatorTest extends TestCase
         $serializer = new FormRulesSerializer(new BlockSerializer());
         $serializer->addRulesFromClass($rulesClass);
 
-        $container                                                 = new Container();
-        $container[FactoryInterface::class]                        = new Factory($container);
-        $container[Connection::class]                              = $this->initDb();
-        $container[ModelSchemaInfoInterface::class]                = $this->getModelSchemas();
+        $container = new Container();
+        $container[FactoryInterface::class] = new Factory($container);
+        $container[Connection::class] = $this->initDb();
+        $container[ModelSchemaInfoInterface::class] = $this->getModelSchemas();
         $container[RelationshipPaginationStrategyInterface::class] = new BasicRelationshipPaginationStrategy(30);
 
-        $validator = new FormValidator(
+        return new FormValidator(
             $rulesClass,
             FormRulesSerializer::class,
             $serializer->getData(),
             new ContextStorage($serializer->getBlocks(), $container),
             (new FormatterFactory())->createFormatter(Messages::NAMESPACE_NAME)
         );
-
-        return $validator;
     }
 }

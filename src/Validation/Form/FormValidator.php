@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ use Whoa\Validation\Contracts\Execution\ContextStorageInterface;
 use Whoa\Validation\Errors\Error;
 use Whoa\Validation\Execution\BlockInterpreter;
 use Whoa\Validation\Validator\BaseValidator;
+
 use function array_key_exists;
 use function array_merge;
 use function assert;
@@ -42,9 +43,6 @@ use function is_int;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.CouplingBetweenObjects)
- * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
  */
 class FormValidator extends BaseValidator implements FormValidatorInterface
 {
@@ -52,7 +50,6 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * It is string though it can be used to access static methods of the interface.
-     *
      * @var FormRulesSerializerInterface|string
      */
     private $serializerClass;
@@ -60,34 +57,34 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
     /**
      * @var ContextStorageInterface
      */
-    private $contextStorage;
+    private ContextStorageInterface $contextStorage;
 
     /**
      * @var FormatterInterface
      */
-    private $messageFormatter;
+    private FormatterInterface $messageFormatter;
 
     /**
      * @var array
      */
-    private $blocks;
+    private array $blocks;
 
     /**
      * @var int[]
      */
-    private $ruleIndexes;
+    private array $ruleIndexes;
 
     /**
      * @var array
      */
-    private $ruleMainIndexes;
+    private array $ruleMainIndexes;
 
     /**
-     * @param string                  $rulesClass
-     * @param string                  $serializerClass
-     * @param array                   $serializedData
+     * @param string $rulesClass
+     * @param string $serializerClass
+     * @param array $serializedData
      * @param ContextStorageInterface $context
-     * @param FormatterInterface      $messageFormatter
+     * @param FormatterInterface $messageFormatter
      */
     public function __construct(
         string $rulesClass,
@@ -95,8 +92,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
         array $serializedData,
         ContextStorageInterface $context,
         FormatterInterface $messageFormatter
-    )
-    {
+    ) {
         $this
             ->setSerializer($serializerClass)
             ->setContext($context)
@@ -111,8 +107,6 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     public function validate($input): bool
     {
@@ -126,9 +120,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
         $this->validateAttributes($input)->markAggregatorsAsDirty();
 
-        $hasNoErrors = $this->getErrorAggregator()->count() <= 0;
-
-        return $hasNoErrors;
+        return $this->getErrorAggregator()->count() <= 0;
     }
 
     /**
@@ -167,7 +159,6 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param string $serializerClass
-     *
      * @return self
      */
     protected function setSerializer(string $serializerClass): self
@@ -189,7 +180,6 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param ContextStorageInterface $context
-     *
      * @return self
      */
     protected function setContext(ContextStorageInterface $context): self
@@ -209,7 +199,6 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param FormatterInterface $messageFormatter
-     *
      * @return self
      */
     private function setMessageFormatter(FormatterInterface $messageFormatter): self
@@ -221,10 +210,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param iterable $attributes
-     *
      * @return self
-     * @SuppressWarnings(PHPMD.StaticAccess)
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     private function validateAttributes(iterable $attributes): self
     {
@@ -249,11 +235,8 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param mixed $input
-     * @param int   $index
-     *
+     * @param int $index
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function executeBlock($input, int $index): void
     {
@@ -269,10 +252,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param array $indexes
-     *
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function executeStarts(array $indexes): void
     {
@@ -286,10 +266,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param array $indexes
-     *
      * @return void
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function executeEnds(array $indexes): void
     {
@@ -303,16 +280,13 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param array $ruleIndexes
-     *
      * @return self
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function setRuleIndexes(array $ruleIndexes): self
     {
         assert($this->debugCheckIndexesExist($ruleIndexes));
 
-        $this->ruleIndexes     = $ruleIndexes;
+        $this->ruleIndexes = $ruleIndexes;
         $this->ruleMainIndexes = $this->getSerializer()::readRuleMainIndexes($ruleIndexes);
 
         return $this;
@@ -336,7 +310,6 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param array $blocks
-     *
      * @return self
      */
     private function setBlocks(array $blocks): self
@@ -348,10 +321,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param string $name
-     *
      * @return int|null
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function getAttributeIndex(string $name): ?int
     {
@@ -362,10 +332,7 @@ class FormValidator extends BaseValidator implements FormValidatorInterface
 
     /**
      * @param array $rules
-     *
      * @return bool
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     private function debugCheckIndexesExist(array $rules): bool
     {

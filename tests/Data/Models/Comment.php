@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ namespace Whoa\Tests\Flute\Data\Models;
 
 use Doctrine\DBAL\Types\Types;
 use Whoa\Contracts\Data\RelationshipTypes;
-use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
-use Whoa\Tests\Flute\Data\Types\SystemUuidType;
+use Whoa\Doctrine\Types\DateTimeType;
+use Whoa\Doctrine\Types\UuidType;
 
 /**
  * @package Whoa\Tests\Flute
@@ -32,43 +32,43 @@ use Whoa\Tests\Flute\Data\Types\SystemUuidType;
 class Comment extends Model
 {
     /** @inheritdoc */
-    const TABLE_NAME = 'comments';
+    public const TABLE_NAME = 'comments';
 
     /** @inheritdoc */
-    const FIELD_ID = 'id_comment';
+    public const FIELD_ID = 'id_comment';
 
     /** Field name */
-    const FIELD_ID_POST = 'id_post_fk';
+    public const FIELD_ID_POST = 'id_post_fk';
 
     /** Field name */
-    const FIELD_ID_USER = 'id_user_fk';
+    public const FIELD_ID_USER = 'id_user_fk';
 
     /** Relationship name */
-    const REL_POST = 'post';
+    public const REL_POST = 'post';
 
     /** Relationship name */
-    const REL_USER = 'user';
+    public const REL_USER = 'user';
 
     /** Relationship name */
-    const REL_EMOTIONS = 'emotions';
+    public const REL_EMOTIONS = 'emotions';
 
     /** Field name */
-    const FIELD_TEXT = 'text';
+    public const FIELD_TEXT = 'text';
 
     /** Field name */
-    const FIELD_INT = 'int_value';
+    public const FIELD_INT = 'int_value';
 
     /** Field name */
-    const FIELD_FLOAT = 'float_value';
+    public const FIELD_FLOAT = 'float_value';
 
     /** Field name */
-    const FIELD_BOOL = 'bool_value';
+    public const FIELD_BOOL = 'bool_value';
 
     /** Field name */
-    const FIELD_DATE_TIME = 'datetime_value';
+    public const FIELD_DATE_TIME = 'datetime_value';
 
     /** Length constant */
-    const LENGTH_TEXT = 255;
+    public const LENGTH_TEXT = 255;
 
     /**
      * @inheritdoc
@@ -76,18 +76,18 @@ class Comment extends Model
     public static function getAttributeTypes(): array
     {
         return [
-            self::FIELD_ID         => Types::INTEGER,
-            self::FIELD_ID_POST    => Types::INTEGER,
-            self::FIELD_ID_USER    => Types::INTEGER,
-            self::FIELD_UUID       => SystemUuidType::NAME,
-            self::FIELD_TEXT       => Types::STRING,
-            self::FIELD_INT        => Types::INTEGER,
-            self::FIELD_FLOAT      => Types::FLOAT,
-            self::FIELD_BOOL       => Types::BOOLEAN,
-            self::FIELD_DATE_TIME  => Types::DATETIME_IMMUTABLE,
-            self::FIELD_CREATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_UPDATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_DELETED_AT => SystemDateTimeType::NAME,
+            self::FIELD_ID => Types::INTEGER,
+            self::FIELD_ID_POST => Types::INTEGER,
+            self::FIELD_ID_USER => Types::INTEGER,
+            self::FIELD_UUID => UuidType::NAME,
+            self::FIELD_TEXT => Types::STRING,
+            self::FIELD_INT => Types::INTEGER,
+            self::FIELD_FLOAT => Types::FLOAT,
+            self::FIELD_BOOL => Types::BOOLEAN,
+            self::FIELD_DATE_TIME => Types::DATETIME_IMMUTABLE,
+            self::FIELD_CREATED_AT => DateTimeType::NAME,
+            self::FIELD_UPDATED_AT => DateTimeType::NAME,
+            self::FIELD_DELETED_AT => DateTimeType::NAME,
         ];
     }
 
@@ -107,7 +107,7 @@ class Comment extends Model
     public static function getRelationships(): array
     {
         return [
-            RelationshipTypes::BELONGS_TO      => [
+            RelationshipTypes::BELONGS_TO => [
                 self::REL_POST => [Post::class, self::FIELD_ID_POST, Post::REL_COMMENTS],
                 self::REL_USER => [User::class, self::FIELD_ID_USER, User::REL_COMMENTS],
             ],

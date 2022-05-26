@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ use Whoa\Flute\Contracts\Validation\ErrorCodes;
 use Whoa\Flute\L10n\Messages;
 use Whoa\Validation\Contracts\Execution\ContextInterface;
 use Whoa\Validation\Rules\ExecuteRule;
+
 use function assert;
 use function count;
 use function is_array;
@@ -38,7 +39,7 @@ use function reset;
 final class ToOneRelationshipTypeCheckerRule extends ExecuteRule
 {
     /** @var int Property key */
-    const PROPERTY_RESOURCE_TYPE = self::PROPERTY_LAST + 1;
+    public const PROPERTY_RESOURCE_TYPE = self::PROPERTY_LAST + 1;
 
     /**
      * @param string $type
@@ -46,7 +47,7 @@ final class ToOneRelationshipTypeCheckerRule extends ExecuteRule
     public function __construct(string $type)
     {
         parent::__construct([
-            static::PROPERTY_RESOURCE_TYPE => $type,
+            ToOneRelationshipTypeCheckerRule::PROPERTY_RESOURCE_TYPE => $type,
         ]);
     }
 
@@ -58,24 +59,24 @@ final class ToOneRelationshipTypeCheckerRule extends ExecuteRule
         // parser guarantees that input will be either null or an [$type => $id] where type and id are scalars
 
         if ($value === null) {
-            return static::createSuccessReply($value);
+            return ToOneRelationshipTypeCheckerRule::createSuccessReply($value);
         }
 
         assert(is_array($value) === true && count($value) === 1);
         $index = reset($value);
-        $type  = key($value);
+        $type = key($value);
         assert(is_scalar($index) === true && is_scalar($type) === true);
-        $expectedType = $context->getProperties()->getProperty(static::PROPERTY_RESOURCE_TYPE);
-        $reply        = $type === $expectedType ?
-            static::createSuccessReply($index) :
-            static::createErrorReply(
+        $expectedType = $context->getProperties()->getProperty(
+            ToOneRelationshipTypeCheckerRule::PROPERTY_RESOURCE_TYPE
+        );
+        return $type === $expectedType ?
+            ToOneRelationshipTypeCheckerRule::createSuccessReply($index) :
+            ToOneRelationshipTypeCheckerRule::createErrorReply(
                 $context,
                 $type,
                 ErrorCodes::INVALID_RELATIONSHIP_TYPE,
                 Messages::INVALID_RELATIONSHIP_TYPE,
                 []
             );
-
-        return $reply;
     }
 }

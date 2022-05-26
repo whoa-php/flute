@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Api;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute\Contracts\Api;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Api;
 
 use Closure;
 use Doctrine\DBAL\Query\QueryBuilder;
@@ -46,28 +49,24 @@ interface CrudInterface
 
     /**
      * @param string $index
-     *
      * @return self
      */
     public function withIndexFilter(string $index): self;
 
     /**
      * @param array $indexes
-     *
      * @return self
      */
     public function withIndexesFilter(array $indexes): self;
 
     /**
      * @param iterable $sortingParameters
-     *
      * @return self
      */
     public function withSorts(iterable $sortingParameters): self;
 
     /**
      * @param iterable $includePaths
-     *
      * @return self
      */
     public function withIncludes(iterable $includePaths): self;
@@ -75,7 +74,6 @@ interface CrudInterface
     /**
      * @param int $offset
      * @param int $limit
-     *
      * @return self
      */
     public function withPaging(int $offset, int $limit): self;
@@ -86,24 +84,21 @@ interface CrudInterface
     public function withoutPaging(): self;
 
     /**
-     * @param string   $name
+     * @param string $name
      * @param iterable $filters
-     *
      * @return CrudInterface
      */
     public function withRelationshipFilters(string $name, iterable $filters): self;
 
     /**
-     * @param string   $name
+     * @param string $name
      * @param iterable $sorts
-     *
      * @return CrudInterface
      */
     public function withRelationshipSorts(string $name, iterable $sorts): self;
 
     /**
      * @param iterable|null $columns
-     *
      * @return QueryBuilder
      */
     public function createIndexBuilder(iterable $columns = null): QueryBuilder;
@@ -115,33 +110,29 @@ interface CrudInterface
 
     /**
      * @param QueryBuilder $builder
-     * @param string       $modelClass
-     *
+     * @param string $modelClass
      * @return PaginatedDataInterface
      */
     public function fetchResources(QueryBuilder $builder, string $modelClass): PaginatedDataInterface;
 
     /**
      * @param QueryBuilder|null $builder
-     * @param string|null       $modelClass
-     *
+     * @param string|null $modelClass
      * @return mixed|null
      */
     public function fetchResource(QueryBuilder $builder, string $modelClass);
 
     /**
      * @param QueryBuilder $builder
-     * @param string       $modelClass
-     *
+     * @param string $modelClass
      * @return array|null
      */
     public function fetchRow(QueryBuilder $builder, string $modelClass): ?array;
 
     /**
      * @param QueryBuilder $builder
-     * @param string       $modelClass
-     * @param string       $columnName
-     *
+     * @param string $modelClass
+     * @param string $columnName
      * @return iterable
      */
     public function fetchColumn(QueryBuilder $builder, string $modelClass, string $columnName): iterable;
@@ -158,7 +149,6 @@ interface CrudInterface
 
     /**
      * @param string $index
-     *
      * @return mixed|null
      */
     public function read(string $index);
@@ -175,34 +165,30 @@ interface CrudInterface
 
     /**
      * @param string $index
-     *
      * @return bool
      */
     public function remove(string $index): bool;
 
     /**
      * @param null|string $index
-     * @param array       $attributes
-     * @param array       $toMany
-     *
+     * @param array $attributes
+     * @param array $toMany
      * @return string
      */
     public function create(?string $index, array $attributes, array $toMany): string;
 
     /**
      * @param string $index
-     * @param array  $attributes
-     * @param array  $toMany
-     *
+     * @param array $attributes
+     * @param array $toMany
      * @return int
      */
     public function update(string $index, array $attributes, array $toMany): int;
 
     /**
-     * @param string        $name
+     * @param string $name
      * @param iterable|null $relationshipFilters
      * @param iterable|null $relationshipSorts
-     *
      * @return PaginatedDataInterface|mixed|null
      */
     public function indexRelationship(
@@ -212,10 +198,9 @@ interface CrudInterface
     );
 
     /**
-     * @param string        $name
+     * @param string $name
      * @param iterable|null $relationshipFilters
      * @param iterable|null $relationshipSorts
-     *
      * @return array
      */
     public function indexRelationshipIdentities(
@@ -225,11 +210,10 @@ interface CrudInterface
     ): array;
 
     /**
-     * @param string        $index
-     * @param string        $name
+     * @param string $index
+     * @param string $name
      * @param iterable|null $relationshipFilters
      * @param iterable|null $relationshipSorts
-     *
      * @return PaginatedDataInterface|mixed|null
      */
     public function readRelationship(
@@ -243,25 +227,22 @@ interface CrudInterface
      * @param string $parentId
      * @param string $name
      * @param string $childId
-     *
      * @return bool
      */
     public function hasInRelationship(string $parentId, string $name, string $childId): bool;
 
     /**
-     * @param string   $parentId
-     * @param string   $name
+     * @param string $parentId
+     * @param string $name
      * @param iterable $childIds
-     *
      * @return int
      */
     public function createInBelongsToManyRelationship(string $parentId, string $name, iterable $childIds): int;
 
     /**
-     * @param string   $parentId
-     * @param string   $name
+     * @param string $parentId
+     * @param string $name
      * @param iterable $childIds
-     *
      * @return int
      */
     public function removeInBelongsToManyRelationship(string $parentId, string $name, iterable $childIds): int;

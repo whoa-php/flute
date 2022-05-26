@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http\Query;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Http\Query;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http\Query;
+
 use Whoa\Flute\Contracts\Http\Query\RelationshipInterface;
 use Whoa\Flute\Contracts\Schema\SchemaInterface;
 
@@ -29,25 +32,25 @@ class Relationship implements RelationshipInterface
     /**
      * @var string
      */
-    private $nameInSchema;
+    private string $nameInSchema;
 
     /**
      * @var string
      */
-    private $nameInModel;
+    private ?string $nameInModel;
 
     /**
      * @var SchemaInterface
      */
-    private $fromSchema;
+    private SchemaInterface $fromSchema;
 
     /**
      * @var SchemaInterface
      */
-    private $toSchema;
+    private SchemaInterface $toSchema;
 
     /**
-     * @param string          $nameInSchema
+     * @param string $nameInSchema
      * @param SchemaInterface $fromSchema
      * @param SchemaInterface $toSchema
      */
@@ -57,8 +60,8 @@ class Relationship implements RelationshipInterface
         SchemaInterface $toSchema
     ) {
         $this->nameInSchema = $nameInSchema;
-        $this->fromSchema   = $fromSchema;
-        $this->toSchema     = $toSchema;
+        $this->fromSchema = $fromSchema;
+        $this->toSchema = $toSchema;
 
         $this->nameInModel = null;
     }

@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\JsonApi\Execution;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute\Validation\JsonApi\Execution;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\JsonApi\Execution;
 
 use Whoa\Contracts\L10n\FormatterInterface;
 use Whoa\Flute\Http\JsonApiResponse;
@@ -32,7 +35,7 @@ class JsonApiErrorCollection extends ErrorCollection
     /**
      * @var FormatterInterface
      */
-    private $messageFormatter;
+    private FormatterInterface $messageFormatter;
 
     /**
      * @param FormatterInterface $formatter
@@ -49,7 +52,7 @@ class JsonApiErrorCollection extends ErrorCollection
         ErrorInterface $error,
         int $errorStatus = JsonApiResponse::HTTP_UNPROCESSABLE_ENTITY
     ): void {
-        $title  = $this->getInvalidValueMessage();
+        $title = $this->getInvalidValueMessage();
         $detail = $this->getValidationMessage($error);
         $this->addDataIdError($title, $detail, (string)$errorStatus);
     }
@@ -61,44 +64,51 @@ class JsonApiErrorCollection extends ErrorCollection
         ErrorInterface $error,
         int $errorStatus = JsonApiResponse::HTTP_UNPROCESSABLE_ENTITY
     ): void {
-        $title  = $this->getInvalidValueMessage();
+        $title = $this->getInvalidValueMessage();
         $detail = $this->getValidationMessage($error);
         $this->addDataTypeError($title, $detail, (string)$errorStatus);
     }
 
     /**
-     * @inheritdoc
+     * @param ErrorInterface $error
+     * @param int $errorStatus
+     * @return void
      */
     public function addValidationAttributeError(
         ErrorInterface $error,
         int $errorStatus = JsonApiResponse::HTTP_UNPROCESSABLE_ENTITY
     ): void {
-        $title  = $this->getInvalidValueMessage();
+        $title = $this->getInvalidValueMessage();
         $detail = $this->getValidationMessage($error);
         $this->addDataAttributeError($error->getParameterName(), $title, $detail, (string)$errorStatus);
     }
 
     /**
-     * @inheritdoc
+     * @param ErrorInterface $error
+     * @param int $errorStatus
+     * @return void
      */
     public function addValidationRelationshipError(
         ErrorInterface $error,
         int $errorStatus = JsonApiResponse::HTTP_UNPROCESSABLE_ENTITY
     ): void {
-        $title  = $this->getInvalidValueMessage();
+        $title = $this->getInvalidValueMessage();
         $detail = $this->getValidationMessage($error);
         $this->addRelationshipError($error->getParameterName(), $title, $detail, (string)$errorStatus);
     }
 
     /**
-     * @inheritdoc
+     * @param string $paramName
+     * @param ErrorInterface $error
+     * @param int $errorStatus
+     * @return void
      */
     public function addValidationQueryError(
         string $paramName,
         ErrorInterface $error,
         int $errorStatus = JsonApiResponse::HTTP_UNPROCESSABLE_ENTITY
     ): void {
-        $title  = $this->getInvalidValueMessage();
+        $title = $this->getInvalidValueMessage();
         $detail = $this->getValidationMessage($error);
         $this->addQueryParameterError($paramName, $title, $detail, (string)$errorStatus);
     }
@@ -116,15 +126,12 @@ class JsonApiErrorCollection extends ErrorCollection
 
     /**
      * @param ErrorInterface $error
-     *
      * @return string
      */
     private function getValidationMessage(ErrorInterface $error): string
     {
-        $message = $this->getMessageFormatter()
+        return $this->getMessageFormatter()
             ->formatMessage($error->getMessageTemplate(), $error->getMessageParameters());
-
-        return $message;
     }
 
     /**

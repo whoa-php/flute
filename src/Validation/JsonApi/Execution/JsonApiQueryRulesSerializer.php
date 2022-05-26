@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\JsonApi\Execution;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +17,24 @@ namespace Whoa\Flute\Validation\JsonApi\Execution;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\JsonApi\Execution;
+
+use Neomerx\JsonApi\Contracts\Http\Query\BaseQueryParserInterface as QPI;
 use Whoa\Common\Reflection\ClassIsTrait;
 use Whoa\Flute\Contracts\Validation\JsonApiQueryParserInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiQueryRulesInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiQueryRulesSerializerInterface;
 use Whoa\Flute\Validation\Serialize\RulesSerializer;
 use Whoa\Validation\Contracts\Rules\RuleInterface;
+
 use function array_key_exists;
 use function assert;
 use function count;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class JsonApiQueryRulesSerializer extends RulesSerializer implements JsonApiQueryRulesSerializerInterface
 {
@@ -40,10 +43,10 @@ class JsonApiQueryRulesSerializer extends RulesSerializer implements JsonApiQuer
     /**
      * @var array
      */
-    private $serializedRules = [];
+    private array $serializedRules = [];
 
     /** Index key */
-    protected const IDENTITY_RULE= 0;
+    protected const IDENTITY_RULE = 0;
 
     /** Index key */
     protected const FILTER_RULES = self::IDENTITY_RULE + 1;
@@ -95,11 +98,8 @@ class JsonApiQueryRulesSerializer extends RulesSerializer implements JsonApiQuer
         );
     }
 
-    /** @noinspection PhpTooManyParametersInspection
+    /**\
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
-     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function addQueryRules(
         string $name,
@@ -115,25 +115,25 @@ class JsonApiQueryRulesSerializer extends RulesSerializer implements JsonApiQuer
         assert(static::hasRules($name, $this->serializedRules) === false);
 
         $identityRule === null ?: $identityRule->setName(JsonApiQueryParserInterface::PARAM_IDENTITY);
-        $sortsRule === null ?: $sortsRule->setName(JsonApiQueryParserInterface::PARAM_SORT);
-        $includesRule === null ?: $includesRule->setName(JsonApiQueryParserInterface::PARAM_INCLUDE);
-        $pageOffsetRule === null ?: $pageOffsetRule->setName(JsonApiQueryParserInterface::PARAM_PAGE);
-        $pageLimitRule === null ?: $pageLimitRule->setName(JsonApiQueryParserInterface::PARAM_PAGE);
+        $sortsRule === null ?: $sortsRule->setName(QPI::PARAM_SORT);
+        $includesRule === null ?: $includesRule->setName(QPI::PARAM_INCLUDE);
+        $pageOffsetRule === null ?: $pageOffsetRule->setName(QPI::PARAM_PAGE);
+        $pageLimitRule === null ?: $pageLimitRule->setName(QPI::PARAM_PAGE);
 
         $this->serializedRules[$name] = [
-            static::IDENTITY_RULE     =>
+            static::IDENTITY_RULE =>
                 $identityRule === null ? null : $this->addRules([static::SINGLE_RULE_INDEX => $identityRule]),
-            static::FILTER_RULES     =>
+            static::FILTER_RULES =>
                 $filterRules === null ? null : $this->addRules($filterRules),
-            static::FIELD_SET_RULES  =>
+            static::FIELD_SET_RULES =>
                 $fieldSetRules === null ? null : $this->addRules($fieldSetRules),
-            static::SORTS_RULE       =>
+            static::SORTS_RULE =>
                 $sortsRule === null ? null : $this->addRules([static::SINGLE_RULE_INDEX => $sortsRule]),
-            static::INCLUDES_RULE    =>
+            static::INCLUDES_RULE =>
                 $includesRule === null ? null : $this->addRules([static::SINGLE_RULE_INDEX => $includesRule]),
             static::PAGE_OFFSET_RULE =>
                 $pageOffsetRule === null ? null : $this->addRules([static::SINGLE_RULE_INDEX => $pageOffsetRule]),
-            static::PAGE_LIMIT_RULE  =>
+            static::PAGE_LIMIT_RULE =>
                 $pageLimitRule === null ? null : $this->addRules([static::SINGLE_RULE_INDEX => $pageLimitRule]),
         ];
 
@@ -146,7 +146,7 @@ class JsonApiQueryRulesSerializer extends RulesSerializer implements JsonApiQuer
     public function getData(): array
     {
         return [
-            static::SERIALIZED_RULES  => $this->serializedRules,
+            static::SERIALIZED_RULES => $this->serializedRules,
             static::SERIALIZED_BLOCKS => $this->getBlocks(),
         ];
     }
@@ -249,7 +249,7 @@ class JsonApiQueryRulesSerializer extends RulesSerializer implements JsonApiQuer
      */
     public static function readRuleMainIndex(array $ruleIndexes): ?int
     {
-        // if you read main/first/only rule and blocks actually have more then something must be wrong
+        // if you read main/first/only rule and blocks actually have more than something must be wrong
         assert(count($ruleIndexes[static::RULES_ARRAY_INDEXES]) === 1);
 
         return $ruleIndexes[static::RULES_ARRAY_INDEXES][static::SINGLE_RULE_INDEX];

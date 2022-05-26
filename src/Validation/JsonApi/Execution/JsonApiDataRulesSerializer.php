@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\JsonApi\Execution;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +17,23 @@ namespace Whoa\Flute\Validation\JsonApi\Execution;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\JsonApi\Execution;
+
 use Whoa\Common\Reflection\ClassIsTrait;
 use Whoa\Flute\Contracts\Validation\JsonApiDataRulesInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiDataRulesSerializerInterface;
 use Whoa\Flute\Validation\Serialize\RulesSerializer;
 use Whoa\Validation\Contracts\Rules\RuleInterface;
 use Neomerx\JsonApi\Contracts\Schema\DocumentInterface;
+
 use function array_key_exists;
 use function assert;
 use function is_array;
 
 /**
  * @package Whoa\Flute
- *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class JsonApiDataRulesSerializer extends RulesSerializer implements JsonApiDataRulesSerializerInterface
 {
@@ -61,7 +63,7 @@ class JsonApiDataRulesSerializer extends RulesSerializer implements JsonApiDataR
     /**
      * @var array
      */
-    private $serializedRules = [];
+    private array $serializedRules = [];
 
     /**
      * @inheritdoc
@@ -99,11 +101,11 @@ class JsonApiDataRulesSerializer extends RulesSerializer implements JsonApiDataR
         $typeRule->setName(DocumentInterface::KEYWORD_TYPE)->enableCapture();
 
         $ruleSet = [
-            static::ID_SERIALIZED         => $this->addRule($idRule),
-            static::TYPE_SERIALIZED       => $this->addRule($typeRule),
+            static::ID_SERIALIZED => $this->addRule($idRule),
+            static::TYPE_SERIALIZED => $this->addRule($typeRule),
             static::ATTRIBUTES_SERIALIZED => $this->addRules($attributeRules),
-            static::TO_ONE_SERIALIZED     => $this->addRules($toOneRules),
-            static::TO_MANY_SERIALIZED    => $this->addRules($toManyRules),
+            static::TO_ONE_SERIALIZED => $this->addRules($toOneRules),
+            static::TO_MANY_SERIALIZED => $this->addRules($toManyRules),
         ];
 
         $this->serializedRules[$name] = $ruleSet;
@@ -115,13 +117,11 @@ class JsonApiDataRulesSerializer extends RulesSerializer implements JsonApiDataR
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public function getData(): array
     {
         return [
-            static::SERIALIZED_RULES  => $this->serializedRules,
+            static::SERIALIZED_RULES => $this->serializedRules,
             static::SERIALIZED_BLOCKS => static::getBlocks(),
         ];
     }
@@ -282,8 +282,6 @@ class JsonApiDataRulesSerializer extends RulesSerializer implements JsonApiDataR
      */
     public static function hasRule(int $index, array $blocks): bool
     {
-        $result = array_key_exists($index, $blocks);
-
-        return $result;
+        return array_key_exists($index, $blocks);
     }
 }

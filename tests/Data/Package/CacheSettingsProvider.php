@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Package;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Data\Package;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Package;
+
 use Whoa\Contracts\Application\CacheSettingsProviderInterface;
 use LogicException;
 
@@ -29,12 +32,12 @@ class CacheSettingsProvider implements CacheSettingsProviderInterface
     /**
      * @var array
      */
-    private $appConf;
+    private array $appConf;
 
     /**
      * @var array
      */
-    private $settings;
+    private array $settings;
 
     /**
      * @param array $appConf
@@ -42,7 +45,7 @@ class CacheSettingsProvider implements CacheSettingsProviderInterface
      */
     public function __construct(array $appConf, array $settings)
     {
-        $this->appConf  = $appConf;
+        $this->appConf = $appConf;
         $this->settings = $settings;
     }
 

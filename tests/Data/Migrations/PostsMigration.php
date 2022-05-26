@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Migrations;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +17,12 @@ namespace Whoa\Tests\Flute\Data\Migrations;
  * limitations under the License.
  */
 
-use Doctrine\DBAL\DBALException;
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Migrations;
+
+use Doctrine\DBAL\Exception as DBALException;
+use Whoa\Tests\Flute\Data\Models\Model as BaseModel;
 use Whoa\Tests\Flute\Data\Models\Post as Model;
 
 /**
@@ -27,11 +31,10 @@ use Whoa\Tests\Flute\Data\Models\Post as Model;
 class PostsMigration extends Migration
 {
     /** @inheritdoc */
-    const MODEL_CLASS = Model::class;
+    public const MODEL_CLASS = Model::class;
 
     /**
      * @inheritdoc
-     *
      * @throws DBALException
      */
     public function migrate()
@@ -43,9 +46,9 @@ class PostsMigration extends Migration
             $this->relationship(Model::REL_BOARD),
             $this->string(Model::FIELD_TITLE),
             $this->text(Model::FIELD_TEXT),
-            $this->datetime(Model::FIELD_CREATED_AT),
-            $this->nullableDatetime(Model::FIELD_UPDATED_AT),
-            $this->nullableDatetime(Model::FIELD_DELETED_AT),
+            $this->datetime(BaseModel::FIELD_CREATED_AT),
+            $this->nullableDatetime(BaseModel::FIELD_UPDATED_AT),
+            $this->nullableDatetime(BaseModel::FIELD_DELETED_AT),
         ]);
     }
 }

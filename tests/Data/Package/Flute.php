@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Package;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Data\Package;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Package;
 
 use Whoa\Flute\Contracts\Validation\FormRulesInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiDataRulesInterface;
@@ -34,62 +37,62 @@ class Flute extends FluteSettings
      *
      * @var self
      */
-    private static $currentInstance;
+    private static Flute $currentInstance;
 
     /**
      * @var string[]
      */
-    private $modelToSchemaMap;
+    private array $modelToSchemaMap;
 
     /**
      * @var string[]
      */
-    private $jsonValRuleSets;
+    private array $jsonValRuleSets;
 
     /**
      * @var string[]
      */
-    private $formValRuleSets;
+    private array $formValRuleSets;
 
     /**
      * @var string[]
      */
-    private $queryValRuleSets;
+    private array $queryValRuleSets;
 
     /**
      * @var string
      */
-    private $apiFolder;
+    private string $apiFolder;
 
     /**
      * @var string
      */
-    private $valRulesFolder;
+    private string $valRulesFolder;
 
     /**
      * @var string
      */
-    private $jsonCtrlFolder;
+    private string $jsonCtrlFolder;
 
     /**
      * @var string
      */
-    private $schemasPath;
+    private string $schemasPath;
 
     /**
      * @var string
      */
-    private $formValPath;
+    private string $formValPath;
 
     /**
      * @var string
      */
-    private $jsonValPath;
+    private string $jsonValPath;
 
     /**
      * @var string
      */
-    private $queryValPath;
+    private string $queryValPath;
 
     /**
      * @param string[] $modelToSchemaMap
@@ -103,17 +106,17 @@ class Flute extends FluteSettings
         array $formRuleSets,
         array $queryRuleSets
     ) {
-        $this->apiFolder      = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Api']);
+        $this->apiFolder = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Api']);
         $this->jsonCtrlFolder = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Http']);
-        $this->schemasPath    = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Schemas']);
+        $this->schemasPath = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Schemas']);
         $this->valRulesFolder = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation']);
-        $this->formValPath    = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation', 'Forms', '**']);
-        $this->jsonValPath    = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation', 'JsonData', '**']);
-        $this->queryValPath   = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation', 'JsonQueries', '**']);
+        $this->formValPath = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation', 'Forms', '**']);
+        $this->jsonValPath = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation', 'JsonData', '**']);
+        $this->queryValPath = implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Validation', 'JsonQueries', '**']);
 
         $this->modelToSchemaMap = $modelToSchemaMap;
-        $this->jsonValRuleSets  = $jsonRuleSets;
-        $this->formValRuleSets  = $formRuleSets;
+        $this->jsonValRuleSets = $jsonRuleSets;
+        $this->formValRuleSets = $formRuleSets;
         $this->queryValRuleSets = $queryRuleSets;
 
         static::$currentInstance = $this;
@@ -125,32 +128,34 @@ class Flute extends FluteSettings
     protected function getSettings(): array
     {
         return parent::getSettings() + [
-                static::KEY_API_FOLDER                   => $this->apiFolder,
-                static::KEY_JSON_CONTROLLERS_FOLDER      => $this->jsonCtrlFolder,
-                static::KEY_SCHEMAS_FOLDER               => $this->schemasPath,
+                static::KEY_API_FOLDER => $this->apiFolder,
+                static::KEY_JSON_CONTROLLERS_FOLDER => $this->jsonCtrlFolder,
+                static::KEY_SCHEMAS_FOLDER => $this->schemasPath,
                 static::KEY_JSON_VALIDATION_RULES_FOLDER => $this->valRulesFolder,
-                static::KEY_JSON_VALIDATORS_FOLDER       => $this->jsonValPath,
-                static::KEY_FORM_VALIDATORS_FOLDER       => $this->formValPath,
-                static::KEY_QUERY_VALIDATORS_FOLDER      => $this->queryValPath,
+                static::KEY_JSON_VALIDATORS_FOLDER => $this->jsonValPath,
+                static::KEY_FORM_VALIDATORS_FOLDER => $this->formValPath,
+                static::KEY_QUERY_VALIDATORS_FOLDER => $this->queryValPath,
             ];
-    }
-
-    /** @noinspection PhpMissingParentCallCommonInspection
-     * @inheritdoc
-     */
-    protected static function selectClasses(string $path, string $implementClassName): iterable
-    {
-        return static::$currentInstance->selectClassesCustom($path, $implementClassName);
     }
 
     /**
      * @inheritdoc
      */
+    protected static function selectClasses(string $path, string $classOrInterface): iterable
+    {
+        return static::$currentInstance->selectClassesCustom($path, $classOrInterface);
+    }
+
+    /**
+     * @param string $path
+     * @param string $implementClassName
+     * @return iterable
+     */
     protected function selectClassesCustom(string $path, string $implementClassName): iterable
     {
-        $settings      = parent::getSettings();
-        $schemasPath   = $this->schemasPath . DIRECTORY_SEPARATOR . $settings[static::KEY_SCHEMAS_FILE_MASK];
-        $jsonFilePath  = $this->jsonValPath . DIRECTORY_SEPARATOR . $settings[static::KEY_JSON_VALIDATORS_FILE_MASK];
+        $settings = parent::getSettings();
+        $schemasPath = $this->schemasPath . DIRECTORY_SEPARATOR . $settings[static::KEY_SCHEMAS_FILE_MASK];
+        $jsonFilePath = $this->jsonValPath . DIRECTORY_SEPARATOR . $settings[static::KEY_JSON_VALIDATORS_FILE_MASK];
         $formsFilePath = $this->formValPath . DIRECTORY_SEPARATOR . $settings[static::KEY_FORM_VALIDATORS_FILE_MASK];
         $queryFilePath = $this->queryValPath . DIRECTORY_SEPARATOR . $settings[static::KEY_QUERY_VALIDATORS_FILE_MASK];
 
@@ -186,7 +191,7 @@ class Flute extends FluteSettings
     }
 
     /**
-     * @inheritdoc
+     * @return string[]
      */
     private function getModelToSchemaMap(): array
     {

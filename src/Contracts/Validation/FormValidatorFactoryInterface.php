@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Validation;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +17,17 @@ namespace Whoa\Flute\Contracts\Validation;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Validation;
+
 /**
- * @package Whoa\Application
+ * @package Whoa\Flute
  */
 interface FormValidatorFactoryInterface
 {
     /**
      * @param string $rulesClass
-     *
      * @return FormValidatorInterface
      */
     public function createValidator(string $rulesClass): FormValidatorInterface;

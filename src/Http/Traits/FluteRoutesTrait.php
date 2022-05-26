@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http\Traits;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +17,22 @@ namespace Whoa\Flute\Http\Traits;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http\Traits;
+
 use Whoa\Contracts\Routing\GroupInterface;
 use Whoa\Contracts\Routing\RouteInterface;
-use Whoa\Flute\Contracts\Http\Controller\ControllerCreateInterface;
-use Whoa\Flute\Contracts\Http\Controller\ControllerDeleteInterface;
-use Whoa\Flute\Contracts\Http\Controller\ControllerIndexInterface;
-use Whoa\Flute\Contracts\Http\Controller\ControllerInstanceInterface;
-use Whoa\Flute\Contracts\Http\Controller\ControllerReadInterface;
-use Whoa\Flute\Contracts\Http\Controller\ControllerUpdateInterface;
+use Whoa\Flute\Contracts\Http\Controller\ControllerCreateInterface as CCI;
+use Whoa\Flute\Contracts\Http\Controller\ControllerDeleteInterface as CDI;
+use Whoa\Flute\Contracts\Http\Controller\ControllerIndexInterface as CII;
+use Whoa\Flute\Contracts\Http\Controller\ControllerInstanceInterface as INI;
+use Whoa\Flute\Contracts\Http\Controller\ControllerReadInterface as CRI;
+use Whoa\Flute\Contracts\Http\Controller\ControllerUpdateInterface as CUI;
 use Whoa\Flute\Contracts\Http\JsonApiControllerInterface as JCI;
 use Whoa\Flute\Contracts\Http\WebControllerInterface as FCI;
 use Neomerx\JsonApi\Contracts\Schema\DocumentInterface;
+
 use function assert;
 use function class_exists;
 use function class_implements;
@@ -42,9 +46,8 @@ trait FluteRoutesTrait
 {
     /**
      * @param GroupInterface $group
-     * @param string         $resourceName
-     * @param string         $controllerClass
-     *
+     * @param string $resourceName
+     * @param string $controllerClass
      * @return GroupInterface
      */
     protected static function apiController(
@@ -55,30 +58,42 @@ trait FluteRoutesTrait
         assert(class_exists($controllerClass) === true);
 
         $groupPrefix = $group->getUriPrefix();
-        $indexSlug   = '/{' . JCI::ROUTE_KEY_INDEX . '}';
-        $params      = function (string $method) use ($groupPrefix, $resourceName): array {
+        $indexSlug = '/{' . JCI::ROUTE_KEY_INDEX . '}';
+        $params = function (string $method) use ($groupPrefix, $resourceName): array {
             return [RouteInterface::PARAM_NAME => static::routeName($groupPrefix, $resourceName, $method)];
         };
-        $handler     = function (string $method) use ($controllerClass): array {
+        $handler = function (string $method) use ($controllerClass): array {
             return [$controllerClass, $method];
         };
 
         // if the class implements any of CRUD methods a corresponding route will be added
         $classInterfaces = class_implements($controllerClass);
-        if (in_array(ControllerIndexInterface::class, $classInterfaces) === true) {
-            $group->get($resourceName, $handler(JCI::METHOD_INDEX), $params(JCI::METHOD_INDEX));
+        if (in_array(CII::class, $classInterfaces) === true) {
+            $group->get(
+                $resourceName,
+                $handler(CII::METHOD_INDEX),
+                $params(
+                    CII::METHOD_INDEX
+                )
+            );
         }
-        if (in_array(ControllerCreateInterface::class, $classInterfaces) === true) {
-            $group->post($resourceName, $handler(JCI::METHOD_CREATE), $params(JCI::METHOD_CREATE));
+        if (in_array(CCI::class, $classInterfaces) === true) {
+            $group->post($resourceName, $handler(CCI::METHOD_CREATE), $params(CCI::METHOD_CREATE));
         }
-        if (in_array(ControllerReadInterface::class, $classInterfaces) === true) {
-            $group->get($resourceName . $indexSlug, $handler(JCI::METHOD_READ), $params(JCI::METHOD_READ));
+        if (in_array(CRI::class, $classInterfaces) === true) {
+            $group->get(
+                $resourceName . $indexSlug,
+                $handler(CRI::METHOD_READ),
+                $params(
+                    CRI::METHOD_READ
+                )
+            );
         }
-        if (in_array(ControllerUpdateInterface::class, $classInterfaces) === true) {
-            $group->patch($resourceName . $indexSlug, $handler(JCI::METHOD_UPDATE), $params(JCI::METHOD_UPDATE));
+        if (in_array(CUI::class, $classInterfaces) === true) {
+            $group->patch($resourceName . $indexSlug, $handler(CUI::METHOD_UPDATE), $params(CUI::METHOD_UPDATE));
         }
-        if (in_array(ControllerDeleteInterface::class, $classInterfaces) === true) {
-            $group->delete($resourceName . $indexSlug, $handler(JCI::METHOD_DELETE), $params(JCI::METHOD_DELETE));
+        if (in_array(CDI::class, $classInterfaces) === true) {
+            $group->delete($resourceName . $indexSlug, $handler(CDI::METHOD_DELETE), $params(CDI::METHOD_DELETE));
         }
 
         return $group;
@@ -86,10 +101,9 @@ trait FluteRoutesTrait
 
     /**
      * @param GroupInterface $group
-     * @param string         $subUri
-     * @param string         $controllerClass
-     * @param string         $createSubUrl
-     *
+     * @param string $subUri
+     * @param string $controllerClass
+     * @param string $createSubUrl
      * @return GroupInterface
      */
     protected static function webController(
@@ -104,35 +118,35 @@ trait FluteRoutesTrait
         }
 
         $groupPrefix = $group->getUriPrefix();
-        $slugged     = $subUri . '/{' . FCI::ROUTE_KEY_INDEX . '}';
-        $params      = function (string $method) use ($groupPrefix, $subUri) : array {
+        $slugged = $subUri . '/{' . FCI::ROUTE_KEY_INDEX . '}';
+        $params = function (string $method) use ($groupPrefix, $subUri): array {
             return [RouteInterface::PARAM_NAME => static::routeName($groupPrefix, $subUri, $method)];
         };
-        $handler     = function (string $method) use ($controllerClass): array {
+        $handler = function (string $method) use ($controllerClass): array {
             return [$controllerClass, $method];
         };
 
         // if the class implements any of CRUD methods a corresponding route will be added
         // as HTML forms do not support methods other than GET/POST we use POST and special URI for update and delete.
         $classInterfaces = class_implements($controllerClass);
-        if (in_array(ControllerIndexInterface::class, $classInterfaces) === true) {
-            $group->get($subUri, $handler(FCI::METHOD_INDEX), $params(FCI::METHOD_INDEX));
+        if (in_array(CII::class, $classInterfaces) === true) {
+            $group->get($subUri, $handler(CII::METHOD_INDEX), $params(CII::METHOD_INDEX));
         }
-        if (in_array(ControllerInstanceInterface::class, $classInterfaces) === true) {
-            $group->get($subUri . $createSubUrl, $handler(FCI::METHOD_INSTANCE), $params(FCI::METHOD_INSTANCE));
+        if (in_array(INI::class, $classInterfaces) === true) {
+            $group->get($subUri . $createSubUrl, $handler(INI::METHOD_INSTANCE), $params(INI::METHOD_INSTANCE));
         }
-        if (in_array(ControllerCreateInterface::class, $classInterfaces) === true) {
-            $group->post($subUri . $createSubUrl, $handler(FCI::METHOD_CREATE), $params(FCI::METHOD_CREATE));
+        if (in_array(CCI::class, $classInterfaces) === true) {
+            $group->post($subUri . $createSubUrl, $handler(CCI::METHOD_CREATE), $params(CCI::METHOD_CREATE));
         }
-        if (in_array(ControllerReadInterface::class, $classInterfaces) === true) {
-            $group->get($slugged, $handler(FCI::METHOD_READ), $params(FCI::METHOD_READ));
+        if (in_array(CRI::class, $classInterfaces) === true) {
+            $group->get($slugged, $handler(CRI::METHOD_READ), $params(CRI::METHOD_READ));
         }
-        if (in_array(ControllerUpdateInterface::class, $classInterfaces) === true) {
-            $group->post($slugged, $handler(FCI::METHOD_UPDATE), $params(FCI::METHOD_UPDATE));
+        if (in_array(CUI::class, $classInterfaces) === true) {
+            $group->post($slugged, $handler(CUI::METHOD_UPDATE), $params(CUI::METHOD_UPDATE));
         }
-        if (in_array(ControllerDeleteInterface::class, $classInterfaces) === true) {
-            $deleteUri = $slugged . '/' . FCI::METHOD_DELETE;
-            $group->post($deleteUri, $handler(FCI::METHOD_DELETE), $params(FCI::METHOD_DELETE));
+        if (in_array(CDI::class, $classInterfaces) === true) {
+            $deleteUri = $slugged . '/' . CDI::METHOD_DELETE;
+            $group->post($deleteUri, $handler(CDI::METHOD_DELETE), $params(CDI::METHOD_DELETE));
         }
 
         return $group;
@@ -140,11 +154,10 @@ trait FluteRoutesTrait
 
     /**
      * @param GroupInterface $group
-     * @param string         $resourceName
-     * @param string         $relationshipName
-     * @param string         $controllerClass
-     * @param string         $selfGetMethod
-     *
+     * @param string $resourceName
+     * @param string $relationshipName
+     * @param string $controllerClass
+     * @param string $selfGetMethod
      * @return GroupInterface
      */
     protected static function relationship(
@@ -155,7 +168,7 @@ trait FluteRoutesTrait
         string $selfGetMethod
     ): GroupInterface {
         $resourceIdUri = $resourceName . '/{' . JCI::ROUTE_KEY_INDEX . '}/';
-        $selfUri       = $resourceIdUri . DocumentInterface::KEYWORD_RELATIONSHIPS . '/' . $relationshipName;
+        $selfUri = $resourceIdUri . DocumentInterface::KEYWORD_RELATIONSHIPS . '/' . $relationshipName;
 
         return $group
             // `self`
@@ -166,11 +179,10 @@ trait FluteRoutesTrait
 
     /**
      * @param GroupInterface $group
-     * @param string         $resourceName
-     * @param string         $relationshipName
-     * @param string         $controllerClass
-     * @param string         $addMethod
-     *
+     * @param string $resourceName
+     * @param string $relationshipName
+     * @param string $controllerClass
+     * @param string $addMethod
      * @return GroupInterface
      */
     protected static function addInRelationship(
@@ -188,11 +200,10 @@ trait FluteRoutesTrait
 
     /**
      * @param GroupInterface $group
-     * @param string         $resourceName
-     * @param string         $relationshipName
-     * @param string         $controllerClass
-     * @param string         $deleteMethod
-     *
+     * @param string $resourceName
+     * @param string $relationshipName
+     * @param string $controllerClass
+     * @param string $deleteMethod
      * @return GroupInterface
      */
     protected static function removeInRelationship(
@@ -212,7 +223,6 @@ trait FluteRoutesTrait
      * @param string $prefix
      * @param string $subUri
      * @param string $method
-     *
      * @return string
      */
     protected static function routeName(string $prefix, string $subUri, string $method): string

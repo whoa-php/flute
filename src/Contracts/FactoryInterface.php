@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Flute\Contracts;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts;
 
 use Doctrine\DBAL\Connection;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
@@ -40,10 +43,9 @@ interface FactoryInterface
     public function createErrorCollection(): ErrorCollection;
 
     /**
-     * @param Connection               $connection
-     * @param string                   $modelClass
+     * @param Connection $connection
+     * @param string $modelClass
      * @param ModelSchemaInfoInterface $modelSchemas
-     *
      * @return ModelQueryBuilder
      */
     public function createModelQueryBuilder(
@@ -54,7 +56,6 @@ interface FactoryInterface
 
     /**
      * @param ModelSchemaInfoInterface $modelSchemas
-     *
      * @return ModelStorageInterface
      */
     public function createModelStorage(ModelSchemaInfoInterface $modelSchemas): ModelStorageInterface;
@@ -65,10 +66,9 @@ interface FactoryInterface
     public function createTagStorage(): TagStorageInterface;
 
     /**
-     * @param array                    $modelToSchemaMap
-     * @param array                    $typeToSchemaMap
+     * @param array $modelToSchemaMap
+     * @param array $typeToSchemaMap
      * @param ModelSchemaInfoInterface $modelSchemas
-     *
      * @return JsonSchemasInterface
      */
     public function createJsonSchemas(
@@ -79,21 +79,18 @@ interface FactoryInterface
 
     /**
      * @param JsonSchemasInterface $schemas
-     *
      * @return EncoderInterface
      */
     public function createEncoder(JsonSchemasInterface $schemas): EncoderInterface;
 
     /**
      * @param mixed $data
-     *
      * @return PaginatedDataInterface
      */
     public function createPaginatedData($data): PaginatedDataInterface;
 
     /**
      * @param string $apiClass
-     *
      * @return CrudInterface
      */
     public function createApi(string $apiClass): CrudInterface;

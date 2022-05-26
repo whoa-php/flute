@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Package;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Package;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Package;
+
 use Exception;
 use Whoa\Flute\Package\FluteProvider;
 use Whoa\Tests\Flute\TestCase;
@@ -29,7 +32,6 @@ class FluteProviderTest extends TestCase
 {
     /**
      * Test provider.
-     *
      * @throws Exception
      */
     public function testProvider(): void

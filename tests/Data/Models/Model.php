@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,22 +31,22 @@ use Whoa\Contracts\Data\UuidFields;
 abstract class Model implements ModelInterface
 {
     /** @var string|null Table name */
-    const TABLE_NAME = null;
+    public const TABLE_NAME = null;
 
     /** @var string|null Primary key */
-    const FIELD_ID = null;
+    public const FIELD_ID = null;
 
     /** Field name */
-    const FIELD_UUID = UuidFields::FIELD_UUID;
+    public const FIELD_UUID = UuidFields::FIELD_UUID;
 
     /** Field name */
-    const FIELD_CREATED_AT = TimestampFields::FIELD_CREATED_AT;
+    public const FIELD_CREATED_AT = TimestampFields::FIELD_CREATED_AT;
 
     /** Field name */
-    const FIELD_UPDATED_AT = TimestampFields::FIELD_UPDATED_AT;
+    public const FIELD_UPDATED_AT = TimestampFields::FIELD_UPDATED_AT;
 
     /** Field name */
-    const FIELD_DELETED_AT = TimestampFields::FIELD_DELETED_AT;
+    public const FIELD_DELETED_AT = TimestampFields::FIELD_DELETED_AT;
 
     /**
      * @inheritdoc

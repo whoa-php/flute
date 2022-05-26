@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Schema;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Schema;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Schema;
+
 use Whoa\Contracts\Application\ModelInterface;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Contracts\Data\RelationshipTypes;
@@ -30,6 +33,7 @@ use Neomerx\JsonApi\Contracts\Schema\DocumentInterface;
 use Neomerx\JsonApi\Contracts\Schema\LinkInterface;
 use Neomerx\JsonApi\Schema\BaseSchema;
 use Neomerx\JsonApi\Schema\Identifier;
+
 use function array_key_exists;
 use function assert;
 use function http_build_query;
@@ -43,26 +47,26 @@ abstract class Schema extends BaseSchema implements SchemaInterface
     /**
      * @var ModelSchemaInfoInterface
      */
-    private $modelSchemas;
+    private ModelSchemaInfoInterface $modelSchemas;
 
     /**
      * @var JsonSchemasInterface
      */
-    private $jsonSchemas;
+    private JsonSchemasInterface $jsonSchemas;
 
     /**
      * @var array|null
      */
-    private $attributesMapping;
+    private ?array $attributesMapping;
 
     /**
      * @var array|null
      */
-    private $relationshipsMapping;
+    private ?array $relationshipsMapping;
 
     /**
-     * @param FactoryInterface         $factory
-     * @param JsonSchemasInterface     $jsonSchemas
+     * @param FactoryInterface $factory
+     * @param JsonSchemasInterface $jsonSchemas
      * @param ModelSchemaInfoInterface $modelSchemas
      */
     public function __construct(
@@ -76,9 +80,9 @@ abstract class Schema extends BaseSchema implements SchemaInterface
         parent::__construct($factory);
 
         $this->modelSchemas = $modelSchemas;
-        $this->jsonSchemas  = $jsonSchemas;
+        $this->jsonSchemas = $jsonSchemas;
 
-        $this->attributesMapping    = null;
+        $this->attributesMapping = null;
         $this->relationshipsMapping = null;
     }
 
@@ -133,29 +137,27 @@ abstract class Schema extends BaseSchema implements SchemaInterface
     /**
      * @inheritdoc
      */
-    public function getAttributes($model): iterable
+    public function getAttributes($resource): iterable
     {
         foreach ($this->getAttributesMapping() as $jsonAttrName => $modelAttrName) {
-            if ($this->hasProperty($model, $modelAttrName) === true) {
-                yield $jsonAttrName => $this->getProperty($model, $modelAttrName);
+            if ($this->hasProperty($resource, $modelAttrName) === true) {
+                yield $jsonAttrName => $this->getProperty($resource, $modelAttrName);
             }
         }
     }
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
-    public function getRelationships($model): iterable
+    public function getRelationships($resource): iterable
     {
-        assert($model instanceof ModelInterface);
+        assert($resource instanceof ModelInterface);
 
         foreach ($this->getRelationshipsMapping() as $jsonRelName => [$modelRelName, $belongsToFkName, $reverseType]) {
             // if model has relationship data then use it
-            if ($this->hasProperty($model, $modelRelName) === true) {
+            if ($this->hasProperty($resource, $modelRelName) === true) {
                 yield $jsonRelName => $this->createRelationshipRepresentationFromData(
-                    $model,
+                    $resource,
                     $modelRelName,
                     $jsonRelName
                 );
@@ -163,13 +165,13 @@ abstract class Schema extends BaseSchema implements SchemaInterface
             }
 
             // if relationship is `belongs-to` and has that ID we can add relationship as identifier
-            if ($belongsToFkName !== null && $this->hasProperty($model, $belongsToFkName) === true) {
-                $reverseIndex = $this->getProperty($model, $belongsToFkName);
-                $identifier   = $reverseIndex === null ?
+            if ($belongsToFkName !== null && $this->hasProperty($resource, $belongsToFkName) === true) {
+                $reverseIndex = $this->getProperty($resource, $belongsToFkName);
+                $identifier = $reverseIndex === null ?
                     null : new Identifier((string)$reverseIndex, $reverseType, false, null);
 
                 yield $jsonRelName => [
-                    static::RELATIONSHIP_DATA       => $identifier,
+                    static::RELATIONSHIP_DATA => $identifier,
                     static::RELATIONSHIP_LINKS_SELF => $this->isAddSelfLinkInRelationshipWithData($jsonRelName),
                 ];
                 continue;
@@ -206,12 +208,9 @@ abstract class Schema extends BaseSchema implements SchemaInterface
 
     /**
      * @param ModelInterface $model
-     * @param string         $modelRelName
-     * @param string         $jsonRelName
-     *
+     * @param string $modelRelName
+     * @param string $jsonRelName
      * @return array
-     *
-     * @SuppressWarnings(PHPMD.ElseExpression)
      */
     protected function createRelationshipRepresentationFromData(
         ModelInterface $model,
@@ -220,7 +219,7 @@ abstract class Schema extends BaseSchema implements SchemaInterface
     ): array {
         assert($this->hasProperty($model, $modelRelName) === true);
         $relationshipData = $this->getProperty($model, $modelRelName);
-        $isPaginatedData  = $relationshipData instanceof PaginatedDataInterface;
+        $isPaginatedData = $relationshipData instanceof PaginatedDataInterface;
 
         $description = [static::RELATIONSHIP_LINKS_SELF => $this->isAddSelfLinkInRelationshipWithData($jsonRelName)];
 
@@ -239,13 +238,13 @@ abstract class Schema extends BaseSchema implements SchemaInterface
         }
 
         // if we are here then relationship contains paginated data, so we have to add pagination links
-        $offset    = $relationshipData->getOffset();
-        $limit     = $relationshipData->getLimit();
+        $offset = $relationshipData->getOffset();
+        $limit = $relationshipData->getLimit();
         $urlPrefix = $this->getRelationshipSelfSubUrl($model, $jsonRelName) . '?';
-        $buildLink = function (int $offset, int $limit) use ($urlPrefix) : LinkInterface {
+        $buildLink = function (int $offset, int $limit) use ($urlPrefix): LinkInterface {
             $paramsWithPaging = [
                 JsonApiQueryParserInterface::PARAM_PAGING_OFFSET => $offset,
-                JsonApiQueryParserInterface::PARAM_PAGING_LIMIT  => $limit,
+                JsonApiQueryParserInterface::PARAM_PAGING_LIMIT => $limit,
             ];
 
             $subUrl = $urlPrefix . http_build_query($paramsWithPaging);
@@ -254,7 +253,7 @@ abstract class Schema extends BaseSchema implements SchemaInterface
         };
 
         $nextOffset = $offset + $limit;
-        $nextLimit  = $limit;
+        $nextLimit = $limit;
         if ($offset <= 0) {
             $description[static::RELATIONSHIP_LINKS] = [
                 DocumentInterface::KEYWORD_NEXT => $buildLink($nextOffset, $nextLimit),
@@ -263,7 +262,7 @@ abstract class Schema extends BaseSchema implements SchemaInterface
             $prevOffset = $offset - $limit;
             if ($prevOffset < 0) {
                 // set offset 0 and decrease limit
-                $prevLimit  = $limit + $prevOffset;
+                $prevLimit = $limit + $prevOffset;
                 $prevOffset = 0;
             } else {
                 $prevLimit = $limit;
@@ -279,21 +278,17 @@ abstract class Schema extends BaseSchema implements SchemaInterface
 
     /**
      * @param ModelInterface $model
-     * @param string         $name
-     *
+     * @param string $name
      * @return bool
      */
     protected function hasProperty(ModelInterface $model, string $name): bool
     {
-        $hasRelationship = property_exists($model, $name) || isset($model->{$name});
-
-        return $hasRelationship;
+        return property_exists($model, $name) || isset($model->{$name});
     }
 
     /**
      * @param ModelInterface $model
-     * @param string         $name
-     *
+     * @param string $name
      * @return mixed
      */
     protected function getProperty(ModelInterface $model, string $name)
@@ -339,7 +334,7 @@ abstract class Schema extends BaseSchema implements SchemaInterface
             $relType = $this->getModelSchemas()->getRelationshipType(static::MODEL, $modelRelName);
             if ($relType === RelationshipTypes::BELONGS_TO) {
                 $belongsToFkName = $this->getModelSchemas()->getForeignKey(static::MODEL, $modelRelName);
-                $reverseSchema   = $this->getJsonSchemas()
+                $reverseSchema = $this->getJsonSchemas()
                     ->getRelationshipSchema(static::class, $jsonRelName);
                 $reverseJsonType = $reverseSchema->getType();
             }
@@ -354,8 +349,7 @@ abstract class Schema extends BaseSchema implements SchemaInterface
 
     /**
      * @param ModelInterface $model
-     * @param string         $jsonRelName
-     *
+     * @param string $jsonRelName
      * @return string
      */
     private function getRelationshipSelfSubUrl(ModelInterface $model, string $jsonRelName): string

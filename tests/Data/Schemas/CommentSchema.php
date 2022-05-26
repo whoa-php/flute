@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ declare (strict_types=1);
 namespace Whoa\Tests\Flute\Data\Schemas;
 
 use Whoa\Tests\Flute\Data\Models\Comment as Model;
+use Whoa\Tests\Flute\Data\Models\Model as BaseModel;
 
 /**
  * @package Whoa\Tests\Flute
@@ -29,34 +30,34 @@ use Whoa\Tests\Flute\Data\Models\Comment as Model;
 class CommentSchema extends BaseSchema
 {
     /** Type */
-    const TYPE = 'comments';
+    public const TYPE = 'comments';
 
     /** Model class name */
-    const MODEL = Model::class;
+    public const MODEL = Model::class;
 
     /** Attribute name */
-    const ATTR_TEXT = 'text-attribute';
+    public const ATTR_TEXT = 'text-attribute';
 
     /** Attribute name */
-    const ATTR_INT = 'int-attribute';
+    public const ATTR_INT = 'int-attribute';
 
     /** Attribute name */
-    const ATTR_FLOAT = 'float-attribute';
+    public const ATTR_FLOAT = 'float-attribute';
 
     /** Attribute name */
-    const ATTR_BOOL = 'bool-attribute';
+    public const ATTR_BOOL = 'bool-attribute';
 
     /** Attribute name */
-    const ATTR_DATE_TIME = 'date-time-attribute';
+    public const ATTR_DATE_TIME = 'date-time-attribute';
 
     /** Relationship name */
-    const REL_USER = 'user-relationship';
+    public const REL_USER = 'user-relationship';
 
     /** Relationship name */
-    const REL_POST = 'post-relationship';
+    public const REL_POST = 'post-relationship';
 
     /** Relationship name */
-    const REL_EMOTIONS = 'emotions-relationship';
+    public const REL_EMOTIONS = 'emotions-relationship';
 
     /**
      * @inheritdoc
@@ -64,20 +65,20 @@ class CommentSchema extends BaseSchema
     public static function getMappings(): array
     {
         return [
-            self::SCHEMA_ATTRIBUTES    => [
-                self::RESOURCE_ID     => Model::FIELD_ID,
-                self::ATTR_UUID       => Model::FIELD_UUID,
-                self::ATTR_TEXT       => Model::FIELD_TEXT,
-                self::ATTR_INT        => Model::FIELD_INT,
-                self::ATTR_FLOAT      => Model::FIELD_FLOAT,
-                self::ATTR_BOOL       => Model::FIELD_BOOL,
-                self::ATTR_DATE_TIME  => Model::FIELD_DATE_TIME,
-                self::ATTR_CREATED_AT => Model::FIELD_CREATED_AT,
-                self::ATTR_UPDATED_AT => Model::FIELD_UPDATED_AT,
+            self::SCHEMA_ATTRIBUTES => [
+                self::RESOURCE_ID => Model::FIELD_ID,
+                self::ATTR_UUID => BaseModel::FIELD_UUID,
+                self::ATTR_TEXT => Model::FIELD_TEXT,
+                self::ATTR_INT => Model::FIELD_INT,
+                self::ATTR_FLOAT => Model::FIELD_FLOAT,
+                self::ATTR_BOOL => Model::FIELD_BOOL,
+                self::ATTR_DATE_TIME => Model::FIELD_DATE_TIME,
+                self::ATTR_CREATED_AT => BaseModel::FIELD_CREATED_AT,
+                self::ATTR_UPDATED_AT => BaseModel::FIELD_UPDATED_AT,
             ],
             self::SCHEMA_RELATIONSHIPS => [
-                self::REL_USER     => Model::REL_USER,
-                self::REL_POST     => Model::REL_POST,
+                self::REL_USER => Model::REL_USER,
+                self::REL_POST => Model::REL_POST,
                 self::REL_EMOTIONS => Model::REL_EMOTIONS,
             ],
         ];

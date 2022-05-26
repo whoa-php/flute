@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\Serialize;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +17,14 @@ namespace Whoa\Flute\Validation\Serialize;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\Serialize;
+
 use Whoa\Validation\Contracts\Execution\BlockSerializerInterface;
 use Whoa\Validation\Contracts\Rules\RuleInterface;
 use Whoa\Validation\Execution\BlockSerializer;
+
 use function array_key_exists;
 use function assert;
 
@@ -57,24 +61,21 @@ class RulesSerializer
     /**
      * @var BlockSerializerInterface
      */
-    private $blockSerializer;
+    private BlockSerializerInterface $blockSerializer;
 
     /**
      * @param RuleInterface $rule
-     *
      * @return array
      */
     public function addRule(RuleInterface $rule): array
     {
         $this->getSerializer()->clearBlocksWithStart()->clearBlocksWithEnd();
 
-        $result = [
-            static::RULES_SINGLE_INDEX         => $this->getSerializer()->addBlock($rule->toBlock()),
+        return [
+            static::RULES_SINGLE_INDEX => $this->getSerializer()->addBlock($rule->toBlock()),
             static::RULES_SINGLE_START_INDEXES => $this->getSerializer()->getBlocksWithStart(),
-            static::RULES_SINGLE_END_INDEXES   => $this->getSerializer()->getBlocksWithEnd(),
+            static::RULES_SINGLE_END_INDEXES => $this->getSerializer()->getBlocksWithEnd(),
         ];
-
-        return $result;
     }
 
     /**
@@ -87,7 +88,6 @@ class RulesSerializer
 
     /**
      * @param RuleInterface[] $rules
-     *
      * @return array
      */
     public function addRules(array $rules): array
@@ -105,19 +105,19 @@ class RulesSerializer
                 $ruleName = $name;
             }
 
-            $block          = $rule->setName($ruleName)->enableCapture()->toBlock();
+            $block = $rule->setName($ruleName)->enableCapture()->toBlock();
             $indexes[$name] = $this->getSerializer()->addBlock($block);
         }
 
         $ruleIndexes = [
-            static::RULES_ARRAY_INDEXES       => $indexes,
+            static::RULES_ARRAY_INDEXES => $indexes,
             static::RULES_ARRAY_START_INDEXES => $this->getSerializer()->getBlocksWithStart(),
-            static::RULES_ARRAY_END_INDEXES   => $this->getSerializer()->getBlocksWithEnd(),
+            static::RULES_ARRAY_END_INDEXES => $this->getSerializer()->getBlocksWithEnd(),
         ];
 
         $this->getSerializer()->clearBlocksWithStart()->clearBlocksWithEnd();
 
-        // sometimes (e.g. update in relationship) an individual validation rule is needed
+        // sometimes (e.g. update in relationship) an individual validation rule is needed,
         // so we should have a second serialization of each rule individually
 
         $individualRules = [];
@@ -131,98 +131,75 @@ class RulesSerializer
 
     /**
      * @return array
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
      */
     public function getBlocks(): array
     {
-        $blocks = BlockSerializer::unserializeBlocks($this->getSerializer()->get());
-
-        return $blocks;
+        return BlockSerializer::unserializeBlocks($this->getSerializer()->get());
     }
 
     /**
      * @param array $singleRuleIndexes
-     *
      * @return int
      */
     public static function getRuleIndex(array $singleRuleIndexes): int
     {
         assert(array_key_exists(static::RULES_SINGLE_INDEX, $singleRuleIndexes));
-        $result = $singleRuleIndexes[static::RULES_SINGLE_INDEX];
-
-        return $result;
+        return $singleRuleIndexes[static::RULES_SINGLE_INDEX];
     }
 
     /**
      * @param array $singleRuleIndexes
-     *
      * @return array
      */
     public static function getRuleStartIndexes(array $singleRuleIndexes): array
     {
         assert(array_key_exists(static::RULES_SINGLE_START_INDEXES, $singleRuleIndexes));
-        $result = $singleRuleIndexes[static::RULES_SINGLE_START_INDEXES];
-
-        return $result;
+        return $singleRuleIndexes[static::RULES_SINGLE_START_INDEXES];
     }
 
     /**
      * @param array $singleRuleIndexes
-     *
      * @return array
      */
     public static function getRuleEndIndexes(array $singleRuleIndexes): array
     {
         assert(array_key_exists(static::RULES_SINGLE_END_INDEXES, $singleRuleIndexes));
-        $result = $singleRuleIndexes[static::RULES_SINGLE_END_INDEXES];
-
-        return $result;
+        return $singleRuleIndexes[static::RULES_SINGLE_END_INDEXES];
     }
 
     /**
      * @param array $arrayRulesIndexes
-     *
      * @return array
      */
     public static function getRulesIndexes(array $arrayRulesIndexes): array
     {
         assert(array_key_exists(static::RULES_ARRAY_INDEXES, $arrayRulesIndexes));
-        $result = $arrayRulesIndexes[static::RULES_ARRAY_INDEXES];
-
-        return $result;
+        return $arrayRulesIndexes[static::RULES_ARRAY_INDEXES];
     }
 
     /**
      * @param array $arrayRulesIndexes
-     *
      * @return array
      */
     public static function getRulesStartIndexes(array $arrayRulesIndexes): array
     {
         assert(array_key_exists(static::RULES_ARRAY_START_INDEXES, $arrayRulesIndexes));
-        $result = $arrayRulesIndexes[static::RULES_ARRAY_START_INDEXES];
-
-        return $result;
+        return $arrayRulesIndexes[static::RULES_ARRAY_START_INDEXES];
     }
 
     /**
      * @param array $arrayRulesIndexes
-     *
      * @return array
      */
     public static function getRulesEndIndexes(array $arrayRulesIndexes): array
     {
         assert(array_key_exists(static::RULES_ARRAY_END_INDEXES, $arrayRulesIndexes));
-        $result = $arrayRulesIndexes[static::RULES_ARRAY_END_INDEXES];
-
-        return $result;
+        return $arrayRulesIndexes[static::RULES_ARRAY_END_INDEXES];
     }
 
     /**
-     * @param array  $arrayRulesIndexes
+     * @param array $arrayRulesIndexes
      * @param string $name
-     *
      * @return array
      */
     public static function geSingleRuleIndexes(array $arrayRulesIndexes, string $name): array
@@ -230,9 +207,7 @@ class RulesSerializer
         assert(array_key_exists(static::RULES_ARRAY_SINGLE_INDEXES, $arrayRulesIndexes));
         $rules = $arrayRulesIndexes[static::RULES_ARRAY_SINGLE_INDEXES];
         assert(array_key_exists($name, $rules));
-        $result = $rules[$name];
-
-        return $result;
+        return $rules[$name];
     }
 
     /**

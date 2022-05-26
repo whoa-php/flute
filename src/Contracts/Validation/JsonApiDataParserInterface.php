@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Validation;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Contracts\Validation;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Validation;
+
 use Neomerx\JsonApi\Contracts\Schema\ErrorInterface;
 
 /**
@@ -27,14 +30,12 @@ interface JsonApiDataParserInterface
 {
     /**
      * @param array $jsonData
-     *
      * @return bool
      */
     public function parse(array $jsonData): bool;
 
     /**
      * @param array $jsonData
-     *
      * @return self
      */
     public function assert(array $jsonData): self;
@@ -42,8 +43,7 @@ interface JsonApiDataParserInterface
     /**
      * @param string $index
      * @param string $name
-     * @param array  $jsonData
-     *
+     * @param array $jsonData
      * @return bool
      */
     public function parseRelationship(string $index, string $name, array $jsonData): bool;
@@ -51,8 +51,7 @@ interface JsonApiDataParserInterface
     /**
      * @param string $index
      * @param string $name
-     * @param array  $jsonData
-     *
+     * @param array $jsonData
      * @return self
      */
     public function assertRelationship(string $index, string $name, array $jsonData): self;

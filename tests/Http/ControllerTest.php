@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,13 +30,19 @@ use Whoa\Contracts\Application\ApplicationConfigurationInterface;
 use Whoa\Contracts\Application\CacheSettingsProviderInterface;
 use Whoa\Contracts\Data\ModelSchemaInfoInterface;
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
+use Whoa\Contracts\Settings\Packages\FluteSettingsInterface;
 use Whoa\Contracts\Settings\SettingsProviderInterface;
+use Whoa\Doctrine\Types\DateTimeType;
+use Whoa\Doctrine\Types\DateType;
+use Whoa\Doctrine\Types\UuidType;
 use Whoa\Flute\Api\BasicRelationshipPaginationStrategy;
 use Whoa\Flute\Contracts\Api\RelationshipPaginationStrategyInterface;
 use Whoa\Flute\Contracts\Encoder\EncoderInterface;
 use Whoa\Flute\Contracts\FactoryInterface;
+use Whoa\Flute\Contracts\Http\JsonApiControllerInterface;
 use Whoa\Flute\Contracts\Http\Query\ParametersMapperInterface;
 use Whoa\Flute\Contracts\Schema\JsonSchemasInterface;
+use Whoa\Flute\Contracts\Schema\SchemaInterface;
 use Whoa\Flute\Contracts\Validation\FormValidatorFactoryInterface;
 use Whoa\Flute\Contracts\Validation\JsonApiParserFactoryInterface;
 use Whoa\Flute\Factory;
@@ -55,9 +61,11 @@ use Whoa\Tests\Flute\Data\L10n\FormatterFactory;
 use Whoa\Tests\Flute\Data\Models\Board;
 use Whoa\Tests\Flute\Data\Models\Comment;
 use Whoa\Tests\Flute\Data\Models\CommentEmotion;
+use Whoa\Tests\Flute\Data\Models\Model;
 use Whoa\Tests\Flute\Data\Models\Post;
 use Whoa\Tests\Flute\Data\Package\CacheSettingsProvider;
 use Whoa\Tests\Flute\Data\Package\Flute;
+use Whoa\Tests\Flute\Data\Schemas\BaseSchema;
 use Whoa\Tests\Flute\Data\Schemas\BoardSchema;
 use Whoa\Tests\Flute\Data\Schemas\CategorySchema;
 use Whoa\Tests\Flute\Data\Schemas\CommentSchema;
@@ -84,12 +92,13 @@ use Zend\Diactoros\Uri;
  */
 class ControllerTest extends TestCase
 {
-    const DEFAULT_JSON_META = [
+    public const DEFAULT_JSON_META = [
         'Title' => 'Default JSON API meta information',
     ];
 
     /**
      * @inheritDoc
+     * @throws DBALException
      */
     protected function setUp(): void
     {
@@ -97,22 +106,22 @@ class ControllerTest extends TestCase
 
         // If test is run withing the whole test suite then those lines not needed, however
         // if only tests from this file are run then the lines are required.
-        Type::hasType(SystemDateTimeType::NAME) === true ?: Type::addType(SystemDateTimeType::NAME, SystemDateTimeType::class);
-        Type::hasType(SystemDateType::NAME) === true ?: Type::addType(SystemDateType::NAME, SystemDateType::class);
+        Type::hasType(DateTimeType::NAME) === true ?: Type::addType(DateTimeType::NAME, SystemDateTimeType::class);
+        Type::hasType(DateType::NAME) === true ?: Type::addType(DateType::NAME, SystemDateType::class);
 
-        Type::hasType(SystemUuidType::NAME) === true ?: Type::addType(SystemUuidType::NAME, SystemUuidType::class);
+        Type::hasType(UuidType::NAME) === true ?: Type::addType(UuidType::NAME, SystemUuidType::class);
     }
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithoutParameters(): void
     {
         $routeParams = [];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn([]);
@@ -124,7 +133,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         $this->assertEquals(
@@ -136,16 +145,16 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexSortByIdDesc(): void
     {
         $routeParams = [];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         $queryParams = [
-            'sort' => '-' . CommentSchema::RESOURCE_ID,
+            'sort' => '-' . SchemaInterface::RESOURCE_ID,
         ];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
@@ -159,7 +168,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body    = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $decoded = json_decode($body, true);
 
         $this->assertEquals(self::DEFAULT_JSON_META, $decoded[DocumentInterface::KEYWORD_META]);
@@ -182,34 +191,34 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithParameters(): void
     {
         $routeParams = [];
         $queryParams = [
-            'filter'  => [
-                CommentSchema::RESOURCE_ID => [
+            'filter' => [
+                SchemaInterface::RESOURCE_ID => [
                     'in' => '10,11,15,17,21',
                 ],
-                CommentSchema::ATTR_TEXT   => [
+                CommentSchema::ATTR_TEXT => [
                     'like' => '%',
                 ],
-                CommentSchema::REL_POST    => [
+                CommentSchema::REL_POST => [
                     'in' => '8,11,15',
                 ],
             ],
-            'sort'    => CommentSchema::REL_POST,
+            'sort' => CommentSchema::REL_POST,
             'include' => CommentSchema::REL_USER,
-            'fields'  => [
+            'fields' => [
                 CommentSchema::TYPE =>
                     CommentSchema::ATTR_TEXT . ',' . CommentSchema::REL_USER . ',' . CommentSchema::REL_POST,
             ],
         ];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -221,7 +230,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         // check reply has resource included
@@ -235,17 +244,19 @@ class ControllerTest extends TestCase
         $this->assertFalse(isset($resource['data'][0]['relationships'][CommentSchema::REL_EMOTIONS]));
 
         // check dynamic attribute is present in User
-        $this->assertTrue(isset(
-            $resource[DocumentInterface::KEYWORD_INCLUDED][0]
-            [DocumentInterface::KEYWORD_ATTRIBUTES][UserSchema::D_ATTR_FULL_NAME]
-        ));
+        $this->assertTrue(
+            isset(
+                $resource[DocumentInterface::KEYWORD_INCLUDED][0]
+                [DocumentInterface::KEYWORD_ATTRIBUTES][UserSchema::D_ATTR_FULL_NAME]
+            )
+        );
     }
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithParametersJoinedByOR(): void
     {
@@ -253,18 +264,18 @@ class ControllerTest extends TestCase
         $queryParams = [
             'filter' => [
                 'or' => [
-                    CommentSchema::RESOURCE_ID => [
+                    SchemaInterface::RESOURCE_ID => [
                         'in' => '10,11',
                     ],
                     // ID 11 has 'quo' in 'text' and we will check it won't be returned twice
-                    CommentSchema::ATTR_TEXT   => [
+                    CommentSchema::ATTR_TEXT => [
                         'like' => '%quo%',
                     ],
                 ],
             ],
         ];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -276,7 +287,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         // manually checked it should be 7 rows selected
@@ -292,24 +303,24 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithParametersWithInvalidJoinParam(): void
     {
         $routeParams = [];
         $queryParams = [
             'filter' => [
-                'or'  => [
-                    CommentSchema::RESOURCE_ID => [
+                'or' => [
+                    SchemaInterface::RESOURCE_ID => [
                         'in' => '10,11',
                     ],
                 ],
                 'xxx' => 'only one top-level element is allowed if AND/OR is used',
             ],
         ];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -333,24 +344,24 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithInvalidParameters(): void
     {
         $routeParams = [];
         $queryParams = [
-            'filter'  => [
+            'filter' => [
                 'aaa' => [
                     'in' => '10,11',
                 ],
             ],
-            'sort'    => 'bbb',
+            'sort' => 'bbb',
             'include' => 'ccc',
         ];
-        $uri         = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
-        $container   = $this->createContainer();
+        $uri = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -371,9 +382,9 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testPaginationInRelationship(): void
     {
@@ -381,8 +392,8 @@ class ControllerTest extends TestCase
         $queryParams = [
             'include' => BoardSchema::REL_POSTS,
         ];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/boards?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/boards?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -397,7 +408,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         // check reply has resource included
@@ -416,9 +427,9 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIncludeNullableRelationshipToItself(): void
     {
@@ -426,8 +437,8 @@ class ControllerTest extends TestCase
         $queryParams = [
             'include' => CategorySchema::REL_PARENT . ',' . CategorySchema::REL_CHILDREN,
         ];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/categories?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/categories?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -439,7 +450,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body      = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resources = json_decode($body, true);
 
         // manually checked it should be 4 rows selected
@@ -456,7 +467,6 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      * @throws DBALException
@@ -464,10 +474,10 @@ class ControllerTest extends TestCase
      */
     public function testReadToOneRelationship(): void
     {
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => '2'];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => '2'];
         $queryParams = [];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/comments/2/users?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/comments/2/users?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -482,7 +492,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         $this->assertNotEmpty($resource);
@@ -491,9 +501,9 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
+     * @throws ContainerExceptionInterface
      * @throws DBALException
-     * @throws Exception
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithHasManyFilter(): void
     {
@@ -504,14 +514,14 @@ class ControllerTest extends TestCase
                     'gt' => '1',
                     'lt' => '10',
                 ],
-                UserSchema::REL_POSTS    => [
+                UserSchema::REL_POSTS => [
                     'gt' => '1',
                     'lt' => '7',
                 ],
             ],
         ];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/users?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/users?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -523,7 +533,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         // manually checked it should be 2 rows
@@ -537,9 +547,9 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testIndexWithBelongsToManyFilter(): void
     {
@@ -547,7 +557,7 @@ class ControllerTest extends TestCase
         // comments with ID 2 and 4 have more than 1 emotions. We will check that only distinct rows to be returned.
         $queryParams = [
             'filter' => [
-                CommentSchema::RESOURCE_ID  => [
+                SchemaInterface::RESOURCE_ID => [
                     'in' => '2,3,4',
                 ],
                 CommentSchema::REL_EMOTIONS => [
@@ -555,8 +565,8 @@ class ControllerTest extends TestCase
                 ],
             ],
         ];
-        $container   = $this->createContainer();
-        $uri         = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
+        $container = $this->createContainer();
+        $uri = new Uri('http://localhost.local/comments?' . http_build_query($queryParams));
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -575,7 +585,7 @@ class ControllerTest extends TestCase
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         // manually checked if rows are not distinct it would be 6 rows
@@ -587,7 +597,6 @@ class ControllerTest extends TestCase
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws DBALException
      * @throws ContainerExceptionInterface
@@ -595,8 +604,8 @@ class ControllerTest extends TestCase
      */
     public function testCreate(): void
     {
-        $uuid      = '64c7660d-01f6-406a-8d13-e137ce268fde';
-        $text      = 'Some comment text';
+        $uuid = '64c7660d-01f6-406a-8d13-e137ce268fde';
+        $text = 'Some comment text';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -630,8 +639,8 @@ EOT;
 
         // check the item is not in the database
         $tableName = Comment::TABLE_NAME;
-        $idColumn  = Comment::FIELD_ID;
-        $index     = '101';
+        $idColumn = Comment::FIELD_ID;
+        $index = '101';
         $container = $this->createContainer();
         /** @var Connection $connection */
         $connection = $container->get(Connection::class);
@@ -651,7 +660,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws DBALException
      * @throws ContainerExceptionInterface
@@ -664,8 +672,8 @@ EOT;
         $connection = $container->get(Connection::class);
 
         // existing role name
-        $boardsTable  = Board::TABLE_NAME;
-        $boardsTitle  = Board::FIELD_TITLE;
+        $boardsTable = Board::TABLE_NAME;
+        $boardsTitle = Board::FIELD_TITLE;
         $existingName = $connection
             ->executeQuery("SELECT $boardsTitle FROM $boardsTable LIMIT 1")->fetchColumn();
 
@@ -701,9 +709,9 @@ EOT;
 
     /**
      * Controller test (form validator).
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testFormCreate(): void
     {
@@ -721,13 +729,14 @@ EOT;
     /**
      * Controller test.
      *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testReadWithoutParameters(): void
     {
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => '96'];
-        $container   = $this->createContainer();
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => '96'];
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn([]);
@@ -739,21 +748,20 @@ EOT;
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true)[DocumentInterface::KEYWORD_DATA];
 
         $this->assertEquals('comments', $resource['type']);
         $this->assertEquals('96', $resource['id']);
         $this->assertEquals([
-            'user-relationship'     => ['data' => ['type' => 'users', 'id' => '1']],
-            'post-relationship'     => ['data' => ['type' => 'posts', 'id' => '12']],
+            'user-relationship' => ['data' => ['type' => 'users', 'id' => '1']],
+            'post-relationship' => ['data' => ['type' => 'posts', 'id' => '12']],
             'emotions-relationship' => ['links' => ['self' => '/comments/96/relationships/emotions-relationship']],
         ], $resource['relationships']);
     }
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -761,9 +769,9 @@ EOT;
      */
     public function testUpdate(): void
     {
-        $uuid      = '64c7660d-01f6-406a-8d13-e137ce268fde';
-        $text      = 'Some comment text';
-        $index     = '96';
+        $uuid = '64c7660d-01f6-406a-8d13-e137ce268fde';
+        $text = 'Some comment text';
+        $index = '96';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -787,7 +795,7 @@ EOT;
         }
 EOT;
 
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getBody')->once()->withNoArgs()->andReturn($jsonInput);
@@ -796,26 +804,26 @@ EOT;
         /** @var ServerRequestInterface $request */
 
         $container = $this->createContainer();
-        $response  = ApiCommentsControllerApi::update($routeParams, $container, $request);
+        $response = ApiCommentsControllerApi::update($routeParams, $container, $request);
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
         $this->assertNotEmpty($body = (string)($response->getBody()));
         $resource = json_decode($body, true)[DocumentInterface::KEYWORD_DATA];
         $this->assertEquals($text, $resource[DocumentInterface::KEYWORD_ATTRIBUTES][CommentSchema::ATTR_TEXT]);
-        $this->assertNotEmpty($resource[DocumentInterface::KEYWORD_ATTRIBUTES][CommentSchema::ATTR_UPDATED_AT]);
+        $this->assertNotEmpty($resource[DocumentInterface::KEYWORD_ATTRIBUTES][BaseSchema::ATTR_UPDATED_AT]);
 
         // check the item is in the database
         $tableName = Comment::TABLE_NAME;
-        $idColumn  = Comment::FIELD_ID;
+        $idColumn = Comment::FIELD_ID;
         /** @var Connection $connection */
         $connection = $container->get(Connection::class);
         $this->assertNotEmpty(
             $row = $connection->executeQuery("SELECT * FROM $tableName WHERE $idColumn = $index")->fetch()
         );
         $this->assertEquals(1, $row[Comment::FIELD_ID_POST]);
-        $tableName  = CommentEmotion::TABLE_NAME;
-        $idColumn   = CommentEmotion::FIELD_ID_COMMENT;
+        $tableName = CommentEmotion::TABLE_NAME;
+        $idColumn = CommentEmotion::FIELD_ID_COMMENT;
         $columnName = CommentEmotion::FIELD_ID_EMOTION;
         $emotionIds =
             $connection->executeQuery("SELECT $columnName FROM $tableName WHERE $idColumn = $index")->fetchAll();
@@ -827,7 +835,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws DBALException
      * @throws ContainerExceptionInterface
@@ -840,10 +847,10 @@ EOT;
         $connection = $container->get(Connection::class);
 
         // existing role name
-        $boardsTable  = Board::TABLE_NAME;
+        $boardsTable = Board::TABLE_NAME;
         $first2boards = $connection->executeQuery("SELECT * FROM $boardsTable LIMIT 2")->fetchAll();
-        $this->assertEquals(2, count($first2boards));
-        $firstId     = $first2boards[0][Board::FIELD_ID];
+        $this->assertCount(2, $first2boards);
+        $firstId = $first2boards[0][Board::FIELD_ID];
         $secondTitle = $first2boards[1][Board::FIELD_TITLE];
 
         $jsonInput = <<<EOT
@@ -858,7 +865,7 @@ EOT;
         }
 EOT;
 
-        $routeParams = [ApiBoardsController::ROUTE_KEY_INDEX => $firstId];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $firstId];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getBody')->once()->withNoArgs()->andReturn($jsonInput);
@@ -879,14 +886,14 @@ EOT;
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testUpdateNonExistingItem(): void
     {
-        $text      = 'Some comment text';
-        $index     = '-1';
+        $text = 'Some comment text';
+        $index = '-1';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -899,7 +906,7 @@ EOT;
         }
 EOT;
 
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getBody')->once()->withNoArgs()->andReturn($jsonInput);
@@ -922,15 +929,15 @@ EOT;
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testUpdateNonMatchingIndexes(): void
     {
-        $text      = 'Some comment text';
-        $index1    = '1';
-        $index2    = '2';
+        $text = 'Some comment text';
+        $index1 = '1';
+        $index2 = '2';
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -943,7 +950,7 @@ EOT;
         }
 EOT;
 
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index2];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index2];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getBody')->once()->withNoArgs()->andReturn($jsonInput);
@@ -966,16 +973,16 @@ EOT;
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testSendInvalidInput(): void
     {
-        $index     = '1';
+        $index = '1';
         $jsonInput = '{';
 
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getBody')->once()->withNoArgs()->andReturn($jsonInput);
@@ -996,14 +1003,14 @@ EOT;
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testUpdateForNonExistingItem(): void
     {
-        $text      = 'Some comment text';
-        $index     = '99999999'; // non-existing
+        $text = 'Some comment text';
+        $index = '99999999'; // non-existing
         $jsonInput = <<<EOT
         {
             "data" : {
@@ -1016,7 +1023,7 @@ EOT;
         }
 EOT;
 
-        $routeParams = [ApiUsersController::ROUTE_KEY_INDEX => $index];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getBody')->once()->withNoArgs()->andReturn($jsonInput);
@@ -1031,7 +1038,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1040,26 +1046,29 @@ EOT;
     public function testDelete(): void
     {
         $tableName = Comment::TABLE_NAME;
-        $idColumn  = Comment::FIELD_ID;
+        $idColumn = Comment::FIELD_ID;
 
         $container = $this->createContainer();
         /** @var Connection $connection */
         $connection = $container->get(Connection::class);
 
         // add comment to delete
-        $this->assertEquals(1, $connection->insert($tableName, [
-            Comment::FIELD_UUID       => '64c7660d-01f6-406a-8d13-e137ce268fde',
-            Comment::FIELD_TEXT       => 'Some text',
-            Comment::FIELD_ID_USER    => '1',
-            Comment::FIELD_ID_POST    => '2',
-            Comment::FIELD_CREATED_AT => '2000-01-02',
-        ]));
+        $this->assertEquals(
+            1,
+            $connection->insert($tableName, [
+                Model::FIELD_UUID => '64c7660d-01f6-406a-8d13-e137ce268fde',
+                Comment::FIELD_TEXT => 'Some text',
+                Comment::FIELD_ID_USER => '1',
+                Comment::FIELD_ID_POST => '2',
+                Model::FIELD_CREATED_AT => '2000-01-02',
+            ])
+        );
         $index = $connection->lastInsertId();
 
         // check the item is in the database
         $this->assertNotEmpty($connection->executeQuery("SELECT * FROM $tableName WHERE $idColumn = $index")->fetch());
 
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index];
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
 
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
@@ -1077,7 +1086,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1085,12 +1093,12 @@ EOT;
      */
     public function testReadRelationship(): void
     {
-        $index       = '2';
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index];
+        $index = '2';
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
         $queryParams = [
             'sort' => '+' . EmotionSchema::ATTR_NAME,
         ];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -1103,7 +1111,7 @@ EOT;
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         $this->assertCount(4, $resource[DocumentInterface::KEYWORD_DATA]);
@@ -1116,7 +1124,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1124,12 +1131,12 @@ EOT;
      */
     public function testReadRelationshipIdentifiers(): void
     {
-        $index       = '2';
-        $routeParams = [ApiCommentsControllerApi::ROUTE_KEY_INDEX => $index];
+        $index = '2';
+        $routeParams = [JsonApiControllerInterface::ROUTE_KEY_INDEX => $index];
         $queryParams = [
             'sort' => '+' . EmotionSchema::ATTR_NAME,
         ];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -1142,7 +1149,7 @@ EOT;
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         $this->assertCount(4, $resource[DocumentInterface::KEYWORD_DATA]);
@@ -1161,7 +1168,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1169,7 +1175,7 @@ EOT;
      */
     public function testAddInRelationship(): void
     {
-        $intTable     = CommentEmotion::TABLE_NAME;
+        $intTable = CommentEmotion::TABLE_NAME;
         $intCommentFk = CommentEmotion::FIELD_ID_COMMENT;
         $intEmotionFk = CommentEmotion::FIELD_ID_EMOTION;
 
@@ -1180,17 +1186,19 @@ EOT;
         $commentId = 1;
         $emotionId = 3;
         // check the item is in the database
-        $this->assertEmpty($connection->executeQuery(
-            "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
-        )->fetchAll());
+        $this->assertEmpty(
+            $connection->executeQuery(
+                "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
+            )->fetchAll()
+        );
 
         $routeParams = [
-            ApiCommentsControllerApi::ROUTE_KEY_INDEX => $commentId,
+            JsonApiControllerInterface::ROUTE_KEY_INDEX => $commentId,
         ];
 
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
-        $uri     = "http://localhost.local/posts/$commentId/relationships/emotions";
+        $uri = "http://localhost.local/posts/$commentId/relationships/emotions";
         $request->shouldReceive('getUri')->twice()->withNoArgs()->andReturn(new Uri($uri));
 
         $requestBody = <<<EOT
@@ -1208,9 +1216,11 @@ EOT;
         $this->assertEquals(204, $response->getStatusCode());
 
         // check the item is in the database
-        $this->assertNotEmpty($connection->executeQuery(
-            "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
-        )->fetchAll());
+        $this->assertNotEmpty(
+            $connection->executeQuery(
+                "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
+            )->fetchAll()
+        );
 
         // try to add same relationship second time (server must return a successful response)
         $this->assertNotNull($response = ApiCommentsControllerApi::addEmotions($routeParams, $container, $request));
@@ -1219,7 +1229,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1227,7 +1236,7 @@ EOT;
      */
     public function testAddInRelationshipInvalidId(): void
     {
-        $intTable     = CommentEmotion::TABLE_NAME;
+        $intTable = CommentEmotion::TABLE_NAME;
         $intCommentFk = CommentEmotion::FIELD_ID_COMMENT;
         $intEmotionFk = CommentEmotion::FIELD_ID_EMOTION;
 
@@ -1238,17 +1247,19 @@ EOT;
         $commentId = 1;
         $emotionId = 123456;
         // check the item is in the database
-        $this->assertEmpty($connection->executeQuery(
-            "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
-        )->fetchAll());
+        $this->assertEmpty(
+            $connection->executeQuery(
+                "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
+            )->fetchAll()
+        );
 
         $routeParams = [
-            ApiCommentsControllerApi::ROUTE_KEY_INDEX => $commentId,
+            JsonApiControllerInterface::ROUTE_KEY_INDEX => $commentId,
         ];
 
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
-        $uri     = "http://localhost.local/posts/$commentId/relationships/emotions";
+        $uri = "http://localhost.local/posts/$commentId/relationships/emotions";
         $request->shouldReceive('getUri')->once()->withNoArgs()->andReturn(new Uri($uri));
 
         $requestBody = <<<EOT
@@ -1275,7 +1286,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1283,7 +1293,7 @@ EOT;
      */
     public function testDeleteInRelationship(): void
     {
-        $intTable     = CommentEmotion::TABLE_NAME;
+        $intTable = CommentEmotion::TABLE_NAME;
         $intCommentFk = CommentEmotion::FIELD_ID_COMMENT;
         $intEmotionFk = CommentEmotion::FIELD_ID_EMOTION;
 
@@ -1294,17 +1304,19 @@ EOT;
         $commentId = 1;
         $emotionId = 4;
         // check the item is in the database
-        $this->assertNotEmpty($connection->executeQuery(
-            "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
-        )->fetchAll());
+        $this->assertNotEmpty(
+            $connection->executeQuery(
+                "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
+            )->fetchAll()
+        );
 
         $routeParams = [
-            ApiCommentsControllerApi::ROUTE_KEY_INDEX => $commentId,
+            JsonApiControllerInterface::ROUTE_KEY_INDEX => $commentId,
         ];
 
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
-        $uri     = "http://localhost.local/posts/$commentId/relationships/emotions";
+        $uri = "http://localhost.local/posts/$commentId/relationships/emotions";
         $request->shouldReceive('getUri')->twice()->withNoArgs()->andReturn(new Uri($uri));
 
         $requestBody = <<<EOT
@@ -1322,9 +1334,11 @@ EOT;
         $this->assertEquals(204, $response->getStatusCode());
 
         // check the item is not in the database
-        $this->assertEmpty($connection->executeQuery(
-            "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
-        )->fetchAll());
+        $this->assertEmpty(
+            $connection->executeQuery(
+                "SELECT * FROM $intTable WHERE $intCommentFk = $commentId AND $intEmotionFk = $emotionId"
+            )->fetchAll()
+        );
 
         // calling `delete` on non-existing resource should not cause any errors
         $this->assertNotNull($response = ApiCommentsControllerApi::deleteEmotions($routeParams, $container, $request));
@@ -1333,7 +1347,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1342,14 +1355,14 @@ EOT;
     public function testReplaceInRelationship(): void
     {
         $tableName = Post::TABLE_NAME;
-        $idColumn  = Post::FIELD_ID;
+        $idColumn = Post::FIELD_ID;
 
         $container = $this->createContainer();
         /** @var Connection $connection */
         $connection = $container->get(Connection::class);
 
         // add comment to update
-        $postId      = 2;
+        $postId = 2;
         $newEditorId = 1;
 
         // check old editor value do not match the new one
@@ -1359,12 +1372,12 @@ EOT;
         $this->assertNotEquals($newEditorId, $post[Post::FIELD_ID_EDITOR]);
 
         $routeParams = [
-            ApiCommentsControllerApi::ROUTE_KEY_INDEX => $postId,
+            JsonApiControllerInterface::ROUTE_KEY_INDEX => $postId,
         ];
 
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
-        $uri     = "http://localhost.local/posts/$postId/relationships/editor";
+        $uri = "http://localhost.local/posts/$postId/relationships/editor";
         $request->shouldReceive('getUri')->once()->withNoArgs()->andReturn(new Uri($uri));
 
         $requestBody = <<<EOT
@@ -1388,7 +1401,6 @@ EOT;
 
     /**
      * Controller test.
-     *
      * @throws Exception
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
@@ -1397,14 +1409,14 @@ EOT;
     public function testReplaceInRelationshipInvalidId(): void
     {
         $tableName = Post::TABLE_NAME;
-        $idColumn  = Post::FIELD_ID;
+        $idColumn = Post::FIELD_ID;
 
         $container = $this->createContainer();
         /** @var Connection $connection */
         $connection = $container->get(Connection::class);
 
         // add comment to update
-        $postId      = 2;
+        $postId = 2;
         $newEditorId = 1;
 
         // check old editor value do not match the new one
@@ -1414,12 +1426,12 @@ EOT;
         $this->assertNotEquals($newEditorId, $post[Post::FIELD_ID_EDITOR]);
 
         $routeParams = [
-            ApiCommentsControllerApi::ROUTE_KEY_INDEX => $postId,
+            JsonApiControllerInterface::ROUTE_KEY_INDEX => $postId,
         ];
 
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
-        $uri     = "http://localhost.local/posts/$postId/relationships/editor";
+        $uri = "http://localhost.local/posts/$postId/relationships/editor";
         $request->shouldReceive('getUri')->once()->withNoArgs()->andReturn(new Uri($uri));
 
         $requestBody = <<<EOT
@@ -1445,14 +1457,13 @@ EOT;
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testFilterBelongsToRelationship(): void
     {
-        /** @noinspection SpellCheckingInspection */
-        $seldomWord  = 'perspiciatis';
+        $seldomWord = 'perspiciatis';
         $queryParams = [
             'filter' => [
                 CommentSchema::REL_POST . '.' . PostSchema::ATTR_TEXT => [
@@ -1460,7 +1471,7 @@ EOT;
                 ],
             ],
         ];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -1473,7 +1484,7 @@ EOT;
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         $this->assertCount(1, $resource[DocumentInterface::KEYWORD_DATA]);
@@ -1485,13 +1496,13 @@ EOT;
 
     /**
      * Controller test.
-     *
-     * @throws Exception
+     * @throws ContainerExceptionInterface
      * @throws DBALException
+     * @throws NotFoundExceptionInterface
      */
     public function testFilterBelongsToManyRelationship(): void
     {
-        $seldomWord  = 'nostrum';
+        $seldomWord = 'nostrum';
         $queryParams = [
             'filter' => [
                 CommentSchema::REL_EMOTIONS . '.' . EmotionSchema::ATTR_NAME => [
@@ -1499,7 +1510,7 @@ EOT;
                 ],
             ],
         ];
-        $container   = $this->createContainer();
+        $container = $this->createContainer();
         /** @var Mock $request */
         $request = Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getQueryParams')->once()->withNoArgs()->andReturn($queryParams);
@@ -1512,7 +1523,7 @@ EOT;
         $this->assertNotNull($response);
         $this->assertEquals(200, $response->getStatusCode());
 
-        $body     = (string)($response->getBody());
+        $body = (string)($response->getBody());
         $resource = json_decode($body, true);
 
         // manually checked it should be 8 comments with IDs below
@@ -1529,7 +1540,6 @@ EOT;
 
     /**
      * @return ContainerInterface
-     *
      * @throws Exception
      * @throws DBALException
      */
@@ -1537,9 +1547,9 @@ EOT;
     {
         $container = new Container();
 
-        $container[FactoryInterface::class]          = $factory = new Factory($container);
+        $container[FactoryInterface::class] = $factory = new Factory($container);
         $container[FormatterFactoryInterface::class] = $formatterFactory = new FormatterFactory();
-        $container[ModelSchemaInfoInterface::class]  = $modelSchemas = $this->getModelSchemas();
+        $container[ModelSchemaInfoInterface::class] = $modelSchemas = $this->getModelSchemas();
 
         $container[JsonSchemasInterface::class] = $jsonSchemas = $this->getJsonSchemas($factory, $modelSchemas);
 
@@ -1547,17 +1557,17 @@ EOT;
             return new ParametersMapper($container->get(JsonSchemasInterface::class));
         };
 
-        $container[Connection::class]                              = $connection = $this->initDb();
+        $container[Connection::class] = $connection = $this->initDb();
         $container[RelationshipPaginationStrategyInterface::class] = new BasicRelationshipPaginationStrategy(10);
 
         $appConfig = [
-            ApplicationConfigurationInterface::KEY_ROUTES_FOLDER          =>
+            ApplicationConfigurationInterface::KEY_ROUTES_FOLDER =>
                 implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Data', 'Http']),
             ApplicationConfigurationInterface::KEY_WEB_CONTROLLERS_FOLDER =>
                 implode(DIRECTORY_SEPARATOR, [__DIR__, '..', 'Data', 'Http']),
         ];
         [$modelToSchemaMap] = $this->getSchemaMap();
-        $cacheSettingsProvider                            = new CacheSettingsProvider(
+        $cacheSettingsProvider = new CacheSettingsProvider(
             $appConfig,
             [
                 FluteSettings::class => (new Flute(
@@ -1569,7 +1579,7 @@ EOT;
             ]
         );
         $container[CacheSettingsProviderInterface::class] = $cacheSettingsProvider;
-        $container[SettingsProviderInterface::class]      = $cacheSettingsProvider;
+        $container[SettingsProviderInterface::class] = $cacheSettingsProvider;
 
         $container[EncoderInterface::class] =
             function (ContainerInterface $container) use ($factory, $jsonSchemas) {
@@ -1578,20 +1588,20 @@ EOT;
                 $settings = $provider->get(FluteSettings::class);
 
                 // meta info so we can test it adds custom properties successfully
-                $settings[FluteSettings::KEY_META] = static::DEFAULT_JSON_META;
+                $settings[FluteSettingsInterface::KEY_META] = static::DEFAULT_JSON_META;
 
-                $urlPrefix = (string)$settings[FluteSettings::KEY_URI_PREFIX];
-                $encoder   = $factory
+                $urlPrefix = (string)$settings[FluteSettingsInterface::KEY_URI_PREFIX];
+                $encoder = $factory
                     ->createEncoder($jsonSchemas)
-                    ->withEncodeOptions($settings[FluteSettings::KEY_JSON_ENCODE_OPTIONS])
-                    ->withEncodeDepth($settings[FluteSettings::KEY_JSON_ENCODE_DEPTH])
+                    ->withEncodeOptions($settings[FluteSettingsInterface::KEY_JSON_ENCODE_OPTIONS])
+                    ->withEncodeDepth($settings[FluteSettingsInterface::KEY_JSON_ENCODE_DEPTH])
                     ->withUrlPrefix($urlPrefix);
-                if (isset($settings[FluteSettings::KEY_META]) === true) {
-                    $meta = $settings[FluteSettings::KEY_META];
+                if (isset($settings[FluteSettingsInterface::KEY_META]) === true) {
+                    $meta = $settings[FluteSettingsInterface::KEY_META];
                     $encoder->withMeta($meta);
                 }
-                if (isset($settings[FluteSettings::KEY_IS_SHOW_VERSION]) === true &&
-                    $settings[FluteSettings::KEY_IS_SHOW_VERSION] === true
+                if (isset($settings[FluteSettingsInterface::KEY_IS_SHOW_VERSION]) === true &&
+                    $settings[FluteSettingsInterface::KEY_IS_SHOW_VERSION] === true
                 ) {
                     $encoder->withJsonApiVersion(FluteSettings::DEFAULT_JSON_API_VERSION);
                 }
@@ -1600,15 +1610,11 @@ EOT;
             };
 
         $container[JsonApiParserFactoryInterface::class] = function (ContainerInterface $container) {
-            $factory = new JsonApiParserFactory($container);
-
-            return $factory;
+            return new JsonApiParserFactory($container);
         };
 
         $container[FormValidatorFactoryInterface::class] = function (ContainerInterface $container) {
-            $factory = new FormValidatorFactory($container);
-
-            return $factory;
+            return new FormValidatorFactory($container);
         };
 
         return $container;

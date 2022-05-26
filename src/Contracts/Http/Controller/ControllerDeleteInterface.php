@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Http\Controller;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Contracts\Http\Controller;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Http\Controller;
+
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -28,13 +31,12 @@ use Psr\Http\Message\ServerRequestInterface;
 interface ControllerDeleteInterface
 {
     /** Handler's method name (could be used in routing table) */
-    const METHOD_DELETE = 'delete';
+    public const METHOD_DELETE = 'delete';
 
     /**
-     * @param array                  $routeParams
-     * @param ContainerInterface     $container
+     * @param array $routeParams
+     * @param ContainerInterface $container
      * @param ServerRequestInterface $request
-     *
      * @return ResponseInterface
      */
     public static function delete(

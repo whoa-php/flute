@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Validation;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +17,35 @@ namespace Whoa\Flute\Contracts\Validation;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Validation;
+
 use Neomerx\JsonApi\Contracts\Http\Query\BaseQueryParserInterface;
 
 /**
- * @package Whoa\Application
+ * @package Whoa\Flute
  */
 interface JsonApiQueryParserInterface extends BaseQueryParserInterface
 {
-    /** Query parameter */
-    const PARAM_IDENTITY = 'id';
+    /** @var string Query parameter */
+    public const PARAM_IDENTITY = 'id';
 
-    /** Query parameter */
-    const PARAM_PAGING_LIMIT = 'limit';
+    /** @var string  Query parameter */
+    public const PARAM_PAGING_LIMIT = 'limit';
 
-    /** Query parameter */
-    const PARAM_PAGING_OFFSET = 'offset';
+    /** @var string  Query parameter */
+    public const PARAM_PAGING_OFFSET = 'offset';
 
     /**
      * @param null|string $identity
-     * @param array       $parameters
-     *
+     * @param array $parameters
      * @return self
      */
     public function parse(?string $identity, array $parameters = []): self;
 
     /**
      * If filters are joined with `AND` (or with `OR` otherwise).
-     *
      * @return bool
      */
     public function areFiltersWithAnd(): bool;

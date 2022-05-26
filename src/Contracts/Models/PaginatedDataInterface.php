@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
+<?php
 
-namespace Whoa\Flute\Contracts\Models;
-
-    /**
+/**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,11 @@ namespace Whoa\Flute\Contracts\Models;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Models;
+
 
 /**
  * @package Whoa\Flute
@@ -65,7 +69,6 @@ interface PaginatedDataInterface
 
     /**
      * @param int|null $offset
-     *
      * @return self
      */
     public function setOffset(int $offset = null): self;
@@ -77,7 +80,6 @@ interface PaginatedDataInterface
 
     /**
      * @param int|null $size
-     *
      * @return self
      */
     public function setLimit(int $size = null): self;

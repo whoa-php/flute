@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Http;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Http;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Http;
+
 use Neomerx\JsonApi\Contracts\Http\Headers\MediaTypeInterface;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\Response\InjectContentTypeTrait;
@@ -29,32 +32,32 @@ use Zend\Diactoros\Stream;
 class JsonApiResponse extends Response
 {
     /** HTTP code */
-    const HTTP_OK = 200;
+    public const HTTP_OK = 200;
 
     /** HTTP code */
-    const HTTP_CREATED = 201;
+    public const HTTP_CREATED = 201;
 
     /** HTTP code */
-    const HTTP_NO_CONTENT = 204;
+    public const HTTP_NO_CONTENT = 204;
 
     /** HTTP code */
-    const HTTP_BAD_REQUEST = 400;
+    public const HTTP_BAD_REQUEST = 400;
 
     /** HTTP code */
-    const HTTP_NOT_FOUND = 404;
+    public const HTTP_NOT_FOUND = 404;
 
     /** HTTP code */
-    const HTTP_CONFLICT = 409;
+    public const HTTP_CONFLICT = 409;
 
     /** HTTP code */
-    const HTTP_UNPROCESSABLE_ENTITY = 422;
+    public const HTTP_UNPROCESSABLE_ENTITY = 422;
 
     use InjectContentTypeTrait;
 
     /**
      * @param string|null $content
-     * @param int         $status
-     * @param array       $headers
+     * @param int $status
+     * @param array $headers
      */
     public function __construct(string $content = null, int $status = 200, array $headers = [])
     {

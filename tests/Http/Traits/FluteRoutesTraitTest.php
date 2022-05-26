@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Http\Traits;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Http\Traits;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Http\Traits;
 
 use Exception;
 use Whoa\Contracts\Routing\GroupInterface;
@@ -37,7 +40,6 @@ class FluteRoutesTraitTest extends TestCase
 
     /**
      * Test helper method.
-     *
      * @throws Exception
      */
     public function testControllerMethod(): void
@@ -59,7 +61,6 @@ class FluteRoutesTraitTest extends TestCase
 
     /**
      * Test helper method.
-     *
      * @throws Exception
      */
     public function testApiControllerMethod(): void
@@ -83,7 +84,6 @@ class FluteRoutesTraitTest extends TestCase
 
     /**
      * Test helper method.
-     *
      * @throws Exception
      */
     public function testRelationshipMethod(): void
@@ -109,7 +109,6 @@ class FluteRoutesTraitTest extends TestCase
 
     /**
      * Test helper method.
-     *
      * @throws Exception
      */
     public function testAddInRelationshipMethod(): void
@@ -135,7 +134,6 @@ class FluteRoutesTraitTest extends TestCase
 
     /**
      * Test helper method.
-     *
      * @throws Exception
      */
     public function testRemoveInRelationshipMethod(): void
@@ -161,7 +159,6 @@ class FluteRoutesTraitTest extends TestCase
 
     /**
      * Test how predictable/stable generated route names are.
-     *
      * @return void
      */
     public function testRouteNamePredictability(): void

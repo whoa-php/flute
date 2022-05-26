@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace Whoa\Tests\Flute\Data\Models;
 
 use Doctrine\DBAL\Types\Types;
 use Whoa\Contracts\Data\RelationshipTypes;
-use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
+use Whoa\Doctrine\Types\DateTimeType;
 
 /**
  * @package Whoa\Tests\Flute
@@ -31,25 +31,25 @@ use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
 class Category extends Model
 {
     /** @inheritdoc */
-    const TABLE_NAME = 'categories';
+    public const TABLE_NAME = 'categories';
 
     /** @inheritdoc */
-    const FIELD_ID = 'id_category';
+    public const FIELD_ID = 'id_category';
 
     /** Field name */
-    const FIELD_ID_PARENT = 'id_parent_fk';
+    public const FIELD_ID_PARENT = 'id_parent_fk';
 
     /** Relationship name */
-    const REL_PARENT = 'parent';
+    public const REL_PARENT = 'parent';
 
     /** Relationship name */
-    const REL_CHILDREN = 'children';
+    public const REL_CHILDREN = 'children';
 
     /** Field name */
-    const FIELD_NAME = 'name';
+    public const FIELD_NAME = 'name';
 
     /** Length constant */
-    const LENGTH_NAME = 255;
+    public const LENGTH_NAME = 255;
 
     /**
      * @inheritdoc
@@ -57,12 +57,12 @@ class Category extends Model
     public static function getAttributeTypes(): array
     {
         return [
-            self::FIELD_ID         => Types::INTEGER,
-            self::FIELD_ID_PARENT  => Types::INTEGER,
-            self::FIELD_NAME       => Types::STRING,
-            self::FIELD_CREATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_UPDATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_DELETED_AT => SystemDateTimeType::NAME,
+            self::FIELD_ID => Types::INTEGER,
+            self::FIELD_ID_PARENT => Types::INTEGER,
+            self::FIELD_NAME => Types::STRING,
+            self::FIELD_CREATED_AT => DateTimeType::NAME,
+            self::FIELD_UPDATED_AT => DateTimeType::NAME,
+            self::FIELD_DELETED_AT => DateTimeType::NAME,
         ];
     }
 
@@ -85,7 +85,7 @@ class Category extends Model
             RelationshipTypes::BELONGS_TO => [
                 self::REL_PARENT => [Category::class, self::FIELD_ID_PARENT, Category::REL_CHILDREN],
             ],
-            RelationshipTypes::HAS_MANY   => [
+            RelationshipTypes::HAS_MANY => [
                 self::REL_CHILDREN => [Category::class, self::FIELD_ID_PARENT, Category::REL_PARENT],
             ],
         ];

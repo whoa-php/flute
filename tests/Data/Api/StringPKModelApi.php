@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Api;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,11 @@ namespace Whoa\Tests\Flute\Data\Api;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Api;
+
+use Whoa\Tests\Flute\Data\Models\Model;
 use Whoa\Tests\Flute\Data\Models\StringPKModel;
 
 /**
@@ -25,7 +29,7 @@ use Whoa\Tests\Flute\Data\Models\StringPKModel;
  */
 class StringPKModelApi extends AppCrud
 {
-    const MODEL_CLASS = StringPKModel::class;
+    public const MODEL_CLASS = StringPKModel::class;
 
     /**
      * @inheritdoc
@@ -33,7 +37,7 @@ class StringPKModelApi extends AppCrud
     protected function filterAttributesOnCreate(?string $index, iterable $attributes): iterable
     {
         foreach (parent::filterAttributesOnCreate($index, $attributes) as $attribute => $value) {
-            if ($attribute !== StringPKModel::FIELD_CREATED_AT) {
+            if ($attribute !== Model::FIELD_CREATED_AT) {
                 yield $attribute => $value;
             }
         }

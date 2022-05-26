@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Data\Http;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Data\Http;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Data\Http;
+
 use Exception;
 use Whoa\Flute\Contracts\Http\WebControllerInterface;
 use Psr\Container\ContainerInterface;
@@ -31,7 +34,6 @@ class WebCategoriesController implements WebControllerInterface
 {
     /**
      * @inheritdoc
-     *
      * @throws Exception
      */
     public static function create(
@@ -44,7 +46,6 @@ class WebCategoriesController implements WebControllerInterface
 
     /**
      * @inheritdoc
-     *
      * @throws Exception
      */
     public static function delete(
@@ -57,7 +58,6 @@ class WebCategoriesController implements WebControllerInterface
 
     /**
      * @inheritdoc
-     *
      * @throws Exception
      */
     public static function index(
@@ -70,7 +70,6 @@ class WebCategoriesController implements WebControllerInterface
 
     /**
      * @inheritdoc
-     *
      * @throws Exception
      */
     public static function instance(
@@ -83,7 +82,6 @@ class WebCategoriesController implements WebControllerInterface
 
     /**
      * @inheritdoc
-     *
      * @throws Exception
      */
     public static function read(
@@ -96,7 +94,6 @@ class WebCategoriesController implements WebControllerInterface
 
     /**
      * @inheritdoc
-     *
      * @throws Exception
      */
     public static function update(

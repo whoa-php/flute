@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Schema;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Contracts\Schema;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Schema;
+
 use Neomerx\JsonApi\Contracts\Schema\SchemaContainerInterface;
 
 /**
@@ -28,7 +31,6 @@ interface JsonSchemasInterface extends SchemaContainerInterface
     /**
      * @param string $schemaClass
      * @param string $relationshipName
-     *
      * @return bool
      */
     public function hasRelationshipSchema(string $schemaClass, string $relationshipName): bool;
@@ -36,7 +38,6 @@ interface JsonSchemasInterface extends SchemaContainerInterface
     /**
      * @param string $schemaClass
      * @param string $relationshipName
-     *
      * @return SchemaInterface
      */
     public function getRelationshipSchema(string $schemaClass, string $relationshipName): SchemaInterface;
@@ -44,14 +45,12 @@ interface JsonSchemasInterface extends SchemaContainerInterface
     /**
      * @param string $modelClass
      * @param string $relationshipName
-     *
      * @return SchemaInterface
      */
     public function getModelRelationshipSchema(string $modelClass, string $relationshipName): SchemaInterface;
 
     /**
      * @param string $resourceType
-     *
      * @return SchemaInterface
      */
     public function getSchemaByResourceType(string $resourceType): SchemaInterface;

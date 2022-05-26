@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright 2021 info@whoaphp.com
+ * Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,8 @@ final class IsUuid extends ExecuteRule
     public static function execute($value, ContextInterface $context, $extras = null): array
     {
         return $value instanceof UuidInterface ?
-            static::createSuccessReply($value) :
-            static::createErrorReply(
+            IsUuid::createSuccessReply($value) :
+            IsUuid::createErrorReply(
                 $context,
                 $value,
                 ErrorCodes::IS_UUID,

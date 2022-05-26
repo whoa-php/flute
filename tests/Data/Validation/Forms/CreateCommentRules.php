@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ namespace Whoa\Tests\Flute\Data\Validation\Forms;
 use Whoa\Flute\Contracts\Validation\FormRulesInterface;
 use Whoa\Flute\Validation\Rules\UuidRulesTrait as uR;
 use Whoa\Tests\Flute\Data\Models\Comment;
+use Whoa\Tests\Flute\Data\Models\Model;
 use Whoa\Validation\Rules as r;
 
 /**
@@ -40,7 +41,7 @@ class CreateCommentRules implements FormRulesInterface
     {
         return [
             Comment::FIELD_TEXT => r::isString(r::stringLengthMax(Comment::LENGTH_TEXT)),
-            Comment::FIELD_UUID => uR::stringToUuid(uR::isUuid()),
+            Model::FIELD_UUID => uR::stringToUuid(uR::isUuid()),
         ];
     }
 }

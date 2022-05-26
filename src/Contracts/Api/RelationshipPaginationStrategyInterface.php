@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Contracts\Api;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@dreamsbond.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Flute\Contracts\Api;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Contracts\Api;
+
 /**
  * @package Whoa\Flute
  */
@@ -28,7 +31,6 @@ interface RelationshipPaginationStrategyInterface
      * @param string $class
      * @param string $path
      * @param string $relationshipName
-     *
      * @return array [$offset, $limit]
      */
     public function getParameters(string $rootClass, string $class, string $path, string $relationshipName): array;

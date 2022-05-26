@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ namespace Whoa\Tests\Flute\Data\Models;
 
 use Doctrine\DBAL\Types\Types;
 use Whoa\Contracts\Data\RelationshipTypes;
-use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
+use Whoa\Doctrine\Types\DateTimeType;
 
 /**
  * @package Whoa\Tests\Flute
@@ -31,40 +31,40 @@ use Whoa\Tests\Flute\Data\Types\SystemDateTimeType;
 class Post extends Model
 {
     /** @inheritdoc */
-    const TABLE_NAME = 'posts';
+    public const TABLE_NAME = 'posts';
 
     /** @inheritdoc */
-    const FIELD_ID = 'id_post';
+    public const FIELD_ID = 'id_post';
 
     /** Field name */
-    const FIELD_ID_BOARD = 'id_board_fk';
+    public const FIELD_ID_BOARD = 'id_board_fk';
 
     /** Field name */
-    const FIELD_ID_USER = 'id_user_fk';
+    public const FIELD_ID_USER = 'id_user_fk';
 
     /** Field name */
-    const FIELD_ID_EDITOR = 'id_editor_fk';
+    public const FIELD_ID_EDITOR = 'id_editor_fk';
 
     /** Relationship name */
-    const REL_BOARD = 'board';
+    public const REL_BOARD = 'board';
 
     /** Relationship name */
-    const REL_USER = 'user';
+    public const REL_USER = 'user';
 
     /** Relationship name */
-    const REL_EDITOR = 'editor';
+    public const REL_EDITOR = 'editor';
 
     /** Relationship name */
-    const REL_COMMENTS = 'comments';
+    public const REL_COMMENTS = 'comments';
 
     /** Field name */
-    const FIELD_TITLE = 'title';
+    public const FIELD_TITLE = 'title';
 
     /** Field name */
-    const FIELD_TEXT = 'text';
+    public const FIELD_TEXT = 'text';
 
     /** Length constant */
-    const LENGTH_TITLE = 255;
+    public const LENGTH_TITLE = 255;
 
     /**
      * @inheritdoc
@@ -72,15 +72,15 @@ class Post extends Model
     public static function getAttributeTypes(): array
     {
         return [
-            self::FIELD_ID         => Types::INTEGER,
-            self::FIELD_ID_BOARD   => Types::INTEGER,
-            self::FIELD_ID_USER    => Types::INTEGER,
-            self::FIELD_ID_EDITOR  => Types::INTEGER,
-            self::FIELD_TITLE      => Types::STRING,
-            self::FIELD_TEXT       => Types::TEXT,
-            self::FIELD_CREATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_UPDATED_AT => SystemDateTimeType::NAME,
-            self::FIELD_DELETED_AT => SystemDateTimeType::NAME,
+            self::FIELD_ID => Types::INTEGER,
+            self::FIELD_ID_BOARD => Types::INTEGER,
+            self::FIELD_ID_USER => Types::INTEGER,
+            self::FIELD_ID_EDITOR => Types::INTEGER,
+            self::FIELD_TITLE => Types::STRING,
+            self::FIELD_TEXT => Types::TEXT,
+            self::FIELD_CREATED_AT => DateTimeType::NAME,
+            self::FIELD_UPDATED_AT => DateTimeType::NAME,
+            self::FIELD_DELETED_AT => DateTimeType::NAME,
         ];
     }
 
@@ -101,11 +101,11 @@ class Post extends Model
     {
         return [
             RelationshipTypes::BELONGS_TO => [
-                self::REL_BOARD  => [Board::class, self::FIELD_ID_BOARD, Board::REL_POSTS],
-                self::REL_USER   => [User::class, self::FIELD_ID_USER, User::REL_AUTHORED_POSTS],
+                self::REL_BOARD => [Board::class, self::FIELD_ID_BOARD, Board::REL_POSTS],
+                self::REL_USER => [User::class, self::FIELD_ID_USER, User::REL_AUTHORED_POSTS],
                 self::REL_EDITOR => [User::class, self::FIELD_ID_EDITOR, User::REL_EDITOR_POSTS],
             ],
-            RelationshipTypes::HAS_MANY   => [
+            RelationshipTypes::HAS_MANY => [
                 self::REL_COMMENTS => [Comment::class, Comment::FIELD_ID_POST, Comment::REL_POST],
             ],
         ];

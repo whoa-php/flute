@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Models;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@ namespace Whoa\Tests\Flute\Models;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Models;
+
 use Exception;
 use Whoa\Flute\Models\PaginatedData;
 use PHPUnit\Framework\TestCase;
@@ -29,7 +32,6 @@ class PaginatedDataTest extends TestCase
 {
     /**
      * Test getters and setters.
-     *
      * @throws Exception
      */
     public function testGettersAndSetters()

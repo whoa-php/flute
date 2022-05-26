@@ -1,9 +1,8 @@
-<?php declare (strict_types=1);
-
-namespace Whoa\Tests\Flute\Http;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Http;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Http;
 
 use Exception;
 use Whoa\Container\Container;
@@ -42,19 +45,18 @@ class ParametersMapperTest extends TestCase
 {
     /**
      * Test query.
-     *
      * @throws Exception
      */
     public function testGetFiltersForVariousFieldTypes(): void
     {
         $filterParameters = [
-            BoardSchema::RESOURCE_ID                              => [
+            SchemaInterface::RESOURCE_ID => [
                 'in' => ['10', '11'],
             ],
-            BoardSchema::ATTR_TITLE                               => [
+            BoardSchema::ATTR_TITLE => [
                 'like' => ['like%'],
             ],
-            BoardSchema::REL_POSTS                                => [
+            BoardSchema::REL_POSTS => [
                 'eq' => ['1'],
             ],
             BoardSchema::REL_POSTS . '.' . PostSchema::ATTR_TITLE => [
@@ -66,13 +68,13 @@ class ParametersMapperTest extends TestCase
 
         /** @var FilterParameterInterface[] $filters */
         $filters = $this->deepIterableToArray($mapper->getMappedFilters());
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(4, $filters);
 
         $filter = $filters[0];
         $this->assertNull($filter->getRelationship());
         $this->assertNotNull($filter->getAttribute());
-        $this->assertEquals(BoardSchema::RESOURCE_ID, $filter->getAttribute()->getNameInSchema());
+        $this->assertEquals(SchemaInterface::RESOURCE_ID, $filter->getAttribute()->getNameInSchema());
         $this->assertEquals(BoardSchema::TYPE, $filter->getAttribute()->getSchema()::TYPE);
         $this->assertEquals([
             FilterParameterInterface::OPERATION_IN => ['10', '11'],
@@ -94,7 +96,7 @@ class ParametersMapperTest extends TestCase
         $this->assertEquals(PostSchema::TYPE, $filter->getRelationship()->getToSchema()::TYPE);
         $this->assertEquals(BoardSchema::REL_POSTS, $filter->getRelationship()->getNameInSchema());
         $this->assertEquals(Board::REL_POSTS, $filter->getRelationship()->getNameInModel());
-        $this->assertEquals(PostSchema::RESOURCE_ID, $filter->getAttribute()->getNameInSchema());
+        $this->assertEquals(SchemaInterface::RESOURCE_ID, $filter->getAttribute()->getNameInSchema());
         $this->assertEquals(PostSchema::TYPE, $filter->getAttribute()->getSchema()::TYPE);
         $this->assertEquals([
             FilterParameterInterface::OPERATION_EQUALS => ['1'],
@@ -122,19 +124,19 @@ class ParametersMapperTest extends TestCase
     public function testGetFiltersForVariousOperations(): void
     {
         $filterParameters = [
-            BoardSchema::RESOURCE_ID => [
-                'equals'            => ['1'],
-                'not-equals'        => ['1'],
-                'less-than'         => ['1'],
-                'less-or-equals'    => ['1'],
-                'greater-than'      => ['1'],
+            SchemaInterface::RESOURCE_ID => [
+                'equals' => ['1'],
+                'not-equals' => ['1'],
+                'less-than' => ['1'],
+                'less-or-equals' => ['1'],
+                'greater-than' => ['1'],
                 'greater-or-equals' => ['1'],
-                'like'              => ['1'],
-                'not-like'          => ['1'],
-                'in'                => ['1', '2'],
-                'not-in'            => ['1', '2'],
-                'is-null'           => [],
-                'not-null'          => [],
+                'like' => ['1'],
+                'not-like' => ['1'],
+                'in' => ['1', '2'],
+                'not-in' => ['1', '2'],
+                'is-null' => [],
+                'not-null' => [],
             ],
         ];
 
@@ -142,33 +144,32 @@ class ParametersMapperTest extends TestCase
 
         /** @var FilterParameterInterface[] $filters */
         $filters = $this->deepIterableToArray($mapper->getMappedFilters());
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(1, $filters);
 
         $filter = reset($filters);
         $this->assertNull($filter->getRelationship());
         $this->assertNotNull($filter->getAttribute());
-        $this->assertEquals(BoardSchema::RESOURCE_ID, $filter->getAttribute()->getNameInSchema());
+        $this->assertEquals(SchemaInterface::RESOURCE_ID, $filter->getAttribute()->getNameInSchema());
         $this->assertEquals(BoardSchema::TYPE, $filter->getAttribute()->getSchema()::TYPE);
         $this->assertEquals([
-            FilterParameterInterface::OPERATION_EQUALS            => ['1'],
-            FilterParameterInterface::OPERATION_NOT_EQUALS        => ['1'],
-            FilterParameterInterface::OPERATION_LESS_THAN         => ['1'],
-            FilterParameterInterface::OPERATION_LESS_OR_EQUALS    => ['1'],
-            FilterParameterInterface::OPERATION_GREATER_THAN      => ['1'],
+            FilterParameterInterface::OPERATION_EQUALS => ['1'],
+            FilterParameterInterface::OPERATION_NOT_EQUALS => ['1'],
+            FilterParameterInterface::OPERATION_LESS_THAN => ['1'],
+            FilterParameterInterface::OPERATION_LESS_OR_EQUALS => ['1'],
+            FilterParameterInterface::OPERATION_GREATER_THAN => ['1'],
             FilterParameterInterface::OPERATION_GREATER_OR_EQUALS => ['1'],
-            FilterParameterInterface::OPERATION_LIKE              => ['1'],
-            FilterParameterInterface::OPERATION_NOT_LIKE          => ['1'],
-            FilterParameterInterface::OPERATION_IN                => ['1', '2'],
-            FilterParameterInterface::OPERATION_NOT_IN            => ['1', '2'],
-            FilterParameterInterface::OPERATION_IS_NULL           => [],
-            FilterParameterInterface::OPERATION_IS_NOT_NULL       => [],
+            FilterParameterInterface::OPERATION_LIKE => ['1'],
+            FilterParameterInterface::OPERATION_NOT_LIKE => ['1'],
+            FilterParameterInterface::OPERATION_IN => ['1', '2'],
+            FilterParameterInterface::OPERATION_NOT_IN => ['1', '2'],
+            FilterParameterInterface::OPERATION_IS_NULL => [],
+            FilterParameterInterface::OPERATION_IS_NOT_NULL => [],
         ], $this->deepIterableToArray($filter->getOperationsWithArguments()));
     }
 
     /**
      * Test query.
-     *
      * @throws Exception
      */
     public function testGetFiltersForUnknownOperation(): void
@@ -176,7 +177,7 @@ class ParametersMapperTest extends TestCase
         $this->expectException(\Whoa\Flute\Exceptions\InvalidQueryParametersException::class);
 
         $filterParameters = [
-            BoardSchema::RESOURCE_ID => [
+            SchemaInterface::RESOURCE_ID => [
                 'non-existing-operation' => [],
             ],
         ];
@@ -185,7 +186,7 @@ class ParametersMapperTest extends TestCase
 
         /** @var FilterParameterInterface[] $filters */
         $filters = $this->deepIterableToArray($mapper->getMappedFilters());
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(1, $filters);
 
         $filter = reset($filters);
@@ -194,7 +195,6 @@ class ParametersMapperTest extends TestCase
 
     /**
      * Test query.
-     *
      * @throws Exception
      */
     public function testGetFiltersForUnknownField(): void
@@ -209,7 +209,7 @@ class ParametersMapperTest extends TestCase
 
         /** @var FilterParameterInterface[] $filters */
         $filters = $this->deepIterableToArray($mapper->getMappedFilters());
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(1, $filters);
 
         $filter = reset($filters);
@@ -218,28 +218,27 @@ class ParametersMapperTest extends TestCase
 
     /**
      * Test query.
-     *
      * @throws Exception
      */
     public function testGetSorts(): void
     {
         $sortParameters = [
-            BoardSchema::RESOURCE_ID                              => true,
-            BoardSchema::ATTR_TITLE                               => false,
-            BoardSchema::REL_POSTS                                => true,
+            SchemaInterface::RESOURCE_ID => true,
+            BoardSchema::ATTR_TITLE => false,
+            BoardSchema::REL_POSTS => true,
             BoardSchema::REL_POSTS . '.' . PostSchema::ATTR_TITLE => false,
         ];
 
         $mapper = $this->createMapper(BoardSchema::class)->withSorts($sortParameters);
         /** @var SortParameter[] $sorts */
         $sorts = $this->deepIterableToArray($mapper->getMappedSorts());
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(4, $sorts);
 
         $sort = $sorts[0];
         $this->assertNull($sort->getRelationship());
         $this->assertNotNull($sort->getAttribute());
-        $this->assertEquals(BoardSchema::RESOURCE_ID, $sort->getAttribute()->getNameInSchema());
+        $this->assertEquals(SchemaInterface::RESOURCE_ID, $sort->getAttribute()->getNameInSchema());
         $this->assertEquals(BoardSchema::TYPE, $sort->getAttribute()->getSchema()::TYPE);
         $this->assertTrue($sort->isAsc());
 
@@ -275,7 +274,6 @@ class ParametersMapperTest extends TestCase
 
     /**
      * Test query.
-     *
      * @throws Exception
      */
     public function testIncludes(): void
@@ -293,20 +291,20 @@ class ParametersMapperTest extends TestCase
 
         /** @var RelationshipInterface[] $include */
         $include = $includes[0];
-        /** @noinspection PhpParamsInspection */
+
         $this->assertCount(1, $include);
         $this->assertEquals(BoardSchema::REL_POSTS, $include[0]->getNameInSchema());
         $this->assertEquals(BoardSchema::TYPE, $include[0]->getFromSchema()::TYPE);
         $this->assertEquals(PostSchema::TYPE, $include[0]->getToSchema()::TYPE);
 
         $include = $includes[1];
-        $this->assertEquals(2, count($include));
+        $this->assertCount(2, $include);
         $this->assertEquals(PostSchema::REL_COMMENTS, $include[1]->getNameInSchema());
         $this->assertEquals(PostSchema::TYPE, $include[1]->getFromSchema()::TYPE);
         $this->assertEquals(CommentSchema::TYPE, $include[1]->getToSchema()::TYPE);
 
         $include = $includes[2];
-        $this->assertEquals(3, count($include));
+        $this->assertCount(3, $include);
         $this->assertEquals(CommentSchema::REL_EMOTIONS, $include[2]->getNameInSchema());
         $this->assertEquals(CommentSchema::TYPE, $include[2]->getFromSchema()::TYPE);
         $this->assertEquals(EmotionSchema::TYPE, $include[2]->getToSchema()::TYPE);
@@ -341,7 +339,6 @@ class ParametersMapperTest extends TestCase
 
     /**
      * @param string $schemaClass
-     *
      * @return ParametersMapperInterface
      */
     private function createMapper(string $schemaClass): ParametersMapperInterface

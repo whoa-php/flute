@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Types;
 use Whoa\Contracts\Application\ModelInterface;
 use Whoa\Contracts\Data\RelationshipTypes;
+use Whoa\Doctrine\Types\UuidType;
 use Whoa\Tests\Flute\Data\Models\Model;
-use Whoa\Tests\Flute\Data\Types\SystemUuidType;
 
 /**
  * @package Whoa\Tests\Flute
@@ -37,7 +37,7 @@ use Whoa\Tests\Flute\Data\Types\SystemUuidType;
 abstract class Migration
 {
     /** Model class */
-    const MODEL_CLASS = null;
+    public const MODEL_CLASS = null;
 
     /**
      * @return void
@@ -47,7 +47,7 @@ abstract class Migration
     /**
      * @var AbstractSchemaManager
      */
-    private $schemaManager;
+    private AbstractSchemaManager $schemaManager;
 
     /**
      * @param AbstractSchemaManager $schemaManager
@@ -58,7 +58,7 @@ abstract class Migration
     }
 
     /**
-     * @inheritdoc
+     * @return void
      */
     public function rollback()
     {
@@ -71,7 +71,7 @@ abstract class Migration
     /**
      * @return AbstractSchemaManager
      */
-    protected function getSchemaManager()
+    protected function getSchemaManager(): AbstractSchemaManager
     {
         return $this->schemaManager;
     }
@@ -79,7 +79,7 @@ abstract class Migration
     /**
      * @return string
      */
-    protected function getTableName()
+    protected function getTableName(): string
     {
         $modelClass = $this->getModelClass();
 
@@ -87,19 +87,16 @@ abstract class Migration
     }
 
     /**
-     * @param string    $name
+     * @param string $name
      * @param Closure[] $expressions
-     *
      * @return Table
-     *
      * @throws DBALException
      */
-    protected function createTable(string $name, array $expressions = [])
+    protected function createTable(string $name, array $expressions = []): Table
     {
         $table = new Table($name);
 
         foreach ($expressions as $expression) {
-            /** @var Closure $expression */
             $expression($table);
         }
 
@@ -110,7 +107,6 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
     protected function primaryInt(string $name)
@@ -123,10 +119,9 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function primaryString(string $name)
+    protected function primaryString(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $table->addColumn($name, Types::STRING)->setNotnull(true);
@@ -136,15 +131,14 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function string(string $name)
+    protected function string(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $modelClass = $this->getModelClass();
             /** @var ModelInterface $modelClass */
-            $lengths   = $modelClass::getAttributeLengths();
+            $lengths = $modelClass::getAttributeLengths();
             $hasLength = array_key_exists($name, $lengths);
             assert($hasLength === true, "String length is not specified for column '$name' in model '$modelClass'.");
             $hasLength ?: null;
@@ -155,10 +149,9 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function text(string $name)
+    protected function text(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $table->addColumn($name, Types::TEXT)->setNotnull(true);
@@ -167,10 +160,9 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function nullableInt(string $name)
+    protected function nullableInt(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $table->addColumn($name, Types::INTEGER)->setNotnull(false);
@@ -179,10 +171,9 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function nullableFloat(string $name)
+    protected function nullableFloat(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $table->addColumn($name, Types::FLOAT)->setNotnull(false);
@@ -191,11 +182,10 @@ abstract class Migration
 
     /**
      * @param string $name
-     * @param bool   $default
-     *
+     * @param bool $default
      * @return Closure
      */
-    protected function bool(string $name, bool $default = false)
+    protected function bool(string $name, bool $default = false): Closure
     {
         return function (Table $table) use ($name, $default) {
             $table->addColumn($name, Types::BOOLEAN)->setNotnull(true)->setDefault($default);
@@ -204,10 +194,9 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function datetime(string $name)
+    protected function datetime(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $table->addColumn($name, Types::DATETIME_IMMUTABLE)->setNotnull(true);
@@ -216,10 +205,9 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function nullableDatetime(string $name)
+    protected function nullableDatetime(string $name): Closure
     {
         return function (Table $table) use ($name) {
             $table->addColumn($name, Types::DATETIME_IMMUTABLE)->setNotnull(false);
@@ -228,22 +216,20 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function uuid(string $name)
+    protected function uuid(string $name): Closure
     {
         return function (Table $table) use ($name) {
-            $table->addColumn($name, SystemUuidType::NAME)->setNotnull(true);
+            $table->addColumn($name, UuidType::NAME)->setNotnull(true);
         };
     }
 
     /**
      * @param string[] $names
-     *
      * @return Closure
      */
-    protected function unique(array $names)
+    protected function unique(array $names): Closure
     {
         return function (Table $table) use ($names) {
             $table->addUniqueIndex($names);
@@ -253,11 +239,10 @@ abstract class Migration
     /**
      * @param string $name
      * @param string $referredClass
-     * @param bool   $notNull
-     *
+     * @param bool $notNull
      * @return Closure
      */
-    protected function foreignInt(string $name, $referredClass, $notNull = true)
+    protected function foreignInt(string $name, string $referredClass, bool $notNull = true): Closure
     {
         return function (Table $table) use ($name, $referredClass, $notNull) {
             $table->addColumn($name, Types::INTEGER)->setUnsigned(true)->setNotnull($notNull);
@@ -271,15 +256,14 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function relationship(string $name)
+    protected function relationship(string $name): Closure
     {
         /** @var ModelInterface $modelClass */
-        $modelClass    = $this->getModelClass();
+        $modelClass = $this->getModelClass();
         $relationships = $modelClass::getRelationships();
-        $relFound      = isset($relationships[RelationshipTypes::BELONGS_TO][$name]);
+        $relFound = isset($relationships[RelationshipTypes::BELONGS_TO][$name]);
         if ($relFound === false) {
             assert($relFound === true, "Belongs-to relationship '$name' not found.");
         }
@@ -290,15 +274,14 @@ abstract class Migration
 
     /**
      * @param string $name
-     *
      * @return Closure
      */
-    protected function nullableRelationship(string $name)
+    protected function nullableRelationship(string $name): Closure
     {
         /** @var ModelInterface $modelClass */
-        $modelClass    = $this->getModelClass();
+        $modelClass = $this->getModelClass();
         $relationships = $modelClass::getRelationships();
-        $relFound      = isset($relationships[RelationshipTypes::BELONGS_TO][$name]);
+        $relFound = isset($relationships[RelationshipTypes::BELONGS_TO][$name]);
         if ($relFound === false) {
             assert($relFound === true, "Belongs-to relationship '$name' not found.");
         }
@@ -308,10 +291,9 @@ abstract class Migration
 
     /**
      * @param string $modelClass
-     *
      * @return string
      */
-    protected function getTableNameForClass(string $modelClass)
+    protected function getTableNameForClass(string $modelClass): string
     {
         /** @var Model $modelClass */
         $tableName = $modelClass::TABLE_NAME;
@@ -323,7 +305,7 @@ abstract class Migration
     /**
      * @return string
      */
-    private function getModelClass()
+    private function getModelClass(): string
     {
         $modelClass = static::MODEL_CLASS;
         assert($modelClass !== null, 'Model class should be set in migration');

@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Tests\Flute\Schema;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021-2022 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +16,10 @@ namespace Whoa\Tests\Flute\Schema;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+declare (strict_types=1);
+
+namespace Whoa\Tests\Flute\Schema;
 
 use Exception;
 use Whoa\Container\Container;
@@ -51,23 +54,22 @@ class SchemaTest extends TestCase
         parent::setUp();
 
         $this->factory = new Factory(new Container());
-        $this->schema  = $this
+        $this->schema = $this
             ->getJsonSchemas($this->factory, $this->getModelSchemas())
             ->getSchemaByResourceType(PostSchema::TYPE);
     }
 
     /**
      * Relationship test.
-     *
      * @throws Exception
      */
     public function testEncodeNullToOneRelationship(): void
     {
-        $post                          = new Post();
-        $post->{Post::FIELD_ID}        = '1';
-        $post->{Post::FIELD_ID_USER}   = null;
+        $post = new Post();
+        $post->{Post::FIELD_ID} = '1';
+        $post->{Post::FIELD_ID_USER} = null;
         $post->{Post::FIELD_ID_EDITOR} = null;
-        $post->{Post::FIELD_ID_BOARD}  = null;
+        $post->{Post::FIELD_ID_BOARD} = null;
 
         $relationships = $this->iterableToArray($this->schema->getRelationships($post));
         $this->assertNull($relationships[PostSchema::REL_USER][PostSchema::RELATIONSHIP_DATA]);
@@ -85,8 +87,8 @@ class SchemaTest extends TestCase
         $comment = new Comment();
         $comment->{Comment::FIELD_ID} = '1';
 
-        $post                       = new Post();
-        $post->{Post::FIELD_ID}     = '2';
+        $post = new Post();
+        $post->{Post::FIELD_ID} = '2';
         $post->{Post::REL_COMMENTS} = $data = $this->factory->createPaginatedData([
             $comment,
             $comment,
@@ -123,10 +125,9 @@ class SchemaTest extends TestCase
     }
 
     /**
-     * @param array  $description
+     * @param array $description
      * @param string $relationshipName
      * @param string $linkName
-     *
      * @return LinkInterface
      */
     private function getRelationshipLinkFromDescription(

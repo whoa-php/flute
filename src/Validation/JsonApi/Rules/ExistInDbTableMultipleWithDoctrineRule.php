@@ -2,7 +2,7 @@
 
 /**
  * Copyright 2015-2019 info@neomerx.com
- * Copyright 2021 info@whoaphp.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,15 @@ declare (strict_types=1);
 namespace Whoa\Flute\Validation\JsonApi\Rules;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver\Exception;
+use Doctrine\DBAL\Exception as DBALException;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Whoa\Flute\Contracts\Validation\ErrorCodes;
 use Whoa\Flute\L10n\Messages;
 use Whoa\Validation\Contracts\Execution\ContextInterface;
 use Whoa\Validation\Rules\ExecuteRule;
+
 use function count;
 use function is_array;
 
@@ -35,10 +40,10 @@ use function is_array;
 final class ExistInDbTableMultipleWithDoctrineRule extends ExecuteRule
 {
     /** @var int Property key */
-    const PROPERTY_TABLE_NAME = self::PROPERTY_LAST + 1;
+    public const PROPERTY_TABLE_NAME = self::PROPERTY_LAST + 1;
 
     /** @var int Property key */
-    const PROPERTY_PRIMARY_NAME = self::PROPERTY_TABLE_NAME + 1;
+    public const PROPERTY_PRIMARY_NAME = self::PROPERTY_TABLE_NAME + 1;
 
     /**
      * @param string $tableName
@@ -47,15 +52,21 @@ final class ExistInDbTableMultipleWithDoctrineRule extends ExecuteRule
     public function __construct(string $tableName, string $primaryName)
     {
         parent::__construct([
-            static::PROPERTY_TABLE_NAME   => $tableName,
-            static::PROPERTY_PRIMARY_NAME => $primaryName,
+            ExistInDbTableMultipleWithDoctrineRule::PROPERTY_TABLE_NAME => $tableName,
+            ExistInDbTableMultipleWithDoctrineRule::PROPERTY_PRIMARY_NAME => $primaryName,
         ]);
     }
 
     /**
      * @inheritDoc
-     * @throws \Doctrine\DBAL\Exception
-     * @throws \Doctrine\DBAL\Driver\Exception
+     * @param $value
+     * @param ContextInterface $context
+     * @param null $extras
+     * @return array
+     * @throws Exception
+     * @throws DBALException
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public static function execute($value, ContextInterface $context, $extras = null): array
     {
@@ -63,12 +74,16 @@ final class ExistInDbTableMultipleWithDoctrineRule extends ExecuteRule
         $result = is_array($value);
 
         if ($result === true && empty($value) === false) {
-            $tableName   = $context->getProperties()->getProperty(static::PROPERTY_TABLE_NAME);
-            $primaryName = $context->getProperties()->getProperty(static::PROPERTY_PRIMARY_NAME);
+            $tableName = $context->getProperties()->getProperty(
+                ExistInDbTableMultipleWithDoctrineRule::PROPERTY_TABLE_NAME
+            );
+            $primaryName = $context->getProperties()->getProperty(
+                ExistInDbTableMultipleWithDoctrineRule::PROPERTY_PRIMARY_NAME
+            );
 
             /** @var Connection $connection */
-            $connection   = $context->getContainer()->get(Connection::class);
-            $builder      = $connection->createQueryBuilder();
+            $connection = $context->getContainer()->get(Connection::class);
+            $builder = $connection->createQueryBuilder();
             $placeholders = [];
             foreach ($value as $v) {
                 $placeholders[] = $builder->createPositionalParameter($v);
@@ -79,20 +94,18 @@ final class ExistInDbTableMultipleWithDoctrineRule extends ExecuteRule
                 ->where($builder->expr()->in($primaryName, $placeholders))
                 ->execute();
 
-            $count  = (int)$statement->fetchOne();
+            $count = (int)$statement->fetchOne();
             $result = $count === count($value);
         }
 
-        $reply = $result === true ?
-            static::createSuccessReply($value) :
-            static::createErrorReply(
+        return $result === true ?
+            ExistInDbTableMultipleWithDoctrineRule::createSuccessReply($value) :
+            ExistInDbTableMultipleWithDoctrineRule::createErrorReply(
                 $context,
                 $value,
                 ErrorCodes::EXIST_IN_DATABASE_MULTIPLE,
                 Messages::EXIST_IN_DATABASE_MULTIPLE,
                 []
             );
-
-        return $reply;
     }
 }

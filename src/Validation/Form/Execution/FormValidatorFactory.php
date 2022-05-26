@@ -1,9 +1,8 @@
-<?php declare (strict_types = 1);
-
-namespace Whoa\Flute\Validation\Form\Execution;
+<?php
 
 /**
  * Copyright 2015-2019 info@neomerx.com
+ * Modification Copyright 2021 info@whoaphp.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,12 @@ namespace Whoa\Flute\Validation\Form\Execution;
  * limitations under the License.
  */
 
+declare (strict_types=1);
+
+namespace Whoa\Flute\Validation\Form\Execution;
+
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Whoa\Container\Traits\HasContainerTrait;
 use Whoa\Contracts\L10n\FormatterFactoryInterface;
 use Whoa\Contracts\Settings\SettingsProviderInterface;
@@ -46,27 +51,25 @@ class FormValidatorFactory implements FormValidatorFactoryInterface
 
     /**
      * @inheritdoc
-     *
-     * @SuppressWarnings(PHPMD.StaticAccess)
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     public function createValidator(string $rulesClass): FormValidatorInterface
     {
         /** @var SettingsProviderInterface $settingsProvider */
         $settingsProvider = $this->getContainer()->get(SettingsProviderInterface::class);
-        $serializedData   = S::getFormSerializedRules($settingsProvider->get(S::class));
+        $serializedData = S::getFormSerializedRules($settingsProvider->get(S::class));
 
         /** @var FormatterFactoryInterface $factory */
-        $factory   = $this->getContainer()->get(FormatterFactoryInterface::class);
+        $factory = $this->getContainer()->get(FormatterFactoryInterface::class);
         $formatter = $factory->createFormatter(Messages::NAMESPACE_NAME);
 
-        $validator = new FormValidator(
+        return new FormValidator(
             $rulesClass,
             FormRulesSerializer::class,
             $serializedData,
             new ContextStorage(FormRulesSerializer::readBlocks($serializedData), $this->getContainer()),
             $formatter
         );
-
-        return $validator;
     }
 }
